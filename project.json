@@ -1,0 +1,133 @@
+{
+  "name": "CICD_TaxCaddy_SanityTest",
+  "projectId": "432d591a-c7ee-460a-90c6-1cbd080a1716",
+  "description": "The aim of this project is to automate the sanity testing process for the FileRoom system, ensuring that all critical functionalities are working correctly. This will enhance efficiency, reduce manual effort, and ensure consistent validation of the system's performance.",
+  "main": "Main.xaml",
+  "dependencies": {
+    "Cloning_MasterTaxClient": "[1.0.16]",
+    "ExceptionClassifier": "[1.0.9]",
+    "Fileroom_Login": "[1.0.5]",
+    "Review_Wizards": "[1.1.4]",
+    "Sanity_ExportValidation": "[1.0.3]",
+    "Sanity_IndexTreeAssociation": "[1.0.21]",
+    "Sanity_ReviewTreeValidation": "[1.0.1]",
+    "Sanity_SCD_ReviewQueue": "[1.0.3]",
+    "Sanity_SubmissionWizard": "[1.0.6]",
+    "Sanity_Taxcaddy_IndexTree_Validation": "[1.0.3]",
+    "Sanity_ThumbnailPageAssociation": "[1.0.19]",
+    "SanityReport_GenerateOutput": "[1.0.3]",
+    "SanityReport_ReadTemplate": "[1.0.6]",
+    "SanityReport_TCFiltering": "[1.0.1]",
+    "Scd_ManagerAssignmentQueue": "[1.0.2]",
+    "SPBinder_BinderInfoRating": "[1.0.2]",
+    "SPBinder_IndexAndReviewTree": "[1.0.2]",
+    "SPBinder_InputForms": "[1.0.3]",
+    "TakeScreenshot": "[1.0.1]",
+    "TaxCaddy_SanityLibrary": "[1.0.3]",
+    "TaxSoftware_Login": "[1.0.11]",
+    "UiPath.DataService.Activities": "[25.2.0]",
+    "UiPath.Excel.Activities": "[2.24.4]",
+    "UiPath.System.Activities": "[24.10.7]",
+    "UiPath.Testing.Activities": "[24.10.3]",
+    "UiPath.UIAutomation.Activities": "[24.10.11]"
+  },
+  "webServices": [],
+  "entitiesStores": [
+    {
+      "serviceDocument": ".entities/EntitiesStore.json",
+      "tenantName": "DefaultTenant",
+      "namespace": "Fileroom_SanityTest",
+      "uniqueReference": "hrMPB3opsLz5xK1pCnhBDPOTvKPlCVSaxj4vPWBRtFI="
+    }
+  ],
+  "schemaVersion": "4.0",
+  "studioVersion": "25.0.157.0",
+  "projectVersion": "1.0.24",
+  "runtimeOptions": {
+    "autoDispose": false,
+    "netFrameworkLazyLoading": false,
+    "isPausable": true,
+    "isAttended": false,
+    "requiresUserInteraction": true,
+    "supportsPersistence": false,
+    "workflowSerialization": "DataContract",
+    "excludedLoggedData": [
+      "Private:*",
+      "*password*"
+    ],
+    "executionType": "Workflow",
+    "readyForPiP": false,
+    "startsInPiP": false,
+    "mustRestoreAllDependencies": true,
+    "pipType": "ChildSession"
+  },
+  "designOptions": {
+    "projectProfile": "Developement",
+    "outputType": "Process",
+    "libraryOptions": {
+      "includeOriginalXaml": false,
+      "privateWorkflows": []
+    },
+    "processOptions": {
+      "ignoredFiles": []
+    },
+    "fileInfoCollection": [
+      {
+        "editingStatus": "InProgress",
+        "testCaseId": "43a73eda-b65b-4aeb-ba84-0153e6375249",
+        "testCaseType": "TestCase",
+        "executionTemplateType": "Local",
+        "fileName": "Tests\\GetTransactionDataTestCase.xaml"
+      },
+      {
+        "editingStatus": "InProgress",
+        "testCaseId": "f61a0b6b-cdd3-4932-aed0-ecbdaba67ee7",
+        "testCaseType": "TestCase",
+        "executionTemplateType": "Local",
+        "fileName": "Tests\\InitAllApplicationsTestCase.xaml"
+      },
+      {
+        "editingStatus": "InProgress",
+        "testCaseId": "ded40d91-8164-46cf-9604-4a3c96cdd917",
+        "testCaseType": "TestCase",
+        "executionTemplateType": "Local",
+        "fileName": "Tests\\InitAllSettingsTestCase.xaml"
+      },
+      {
+        "editingStatus": "InProgress",
+        "testCaseId": "1dbd56c3-d470-4308-8764-1e06b3db32ed",
+        "testCaseType": "TestCase",
+        "executionTemplateType": "Local",
+        "fileName": "Tests\\MainTestCase.xaml"
+      },
+      {
+        "editingStatus": "InProgress",
+        "testCaseId": "e62ce6b0-7691-43ca-a238-124824ed3b6e",
+        "testCaseType": "TestCase",
+        "executionTemplateType": "Local",
+        "fileName": "Tests\\ProcessTestCase.xaml"
+      },
+      {
+        "editingStatus": "InProgress",
+        "testCaseId": "3c692fab-04d4-4069-83d4-e28f22435e30",
+        "testCaseType": "TestCase",
+        "executionTemplateType": "Local",
+        "fileName": "Tests\\WorkflowTestCaseTemplate.xaml"
+      }
+    ],
+    "saveToCloud": false
+  },
+  "expressionLanguage": "VisualBasic",
+  "entryPoints": [
+    {
+      "filePath": "Main.xaml",
+      "uniqueId": "f831ab17-8b78-4a93-95c6-19e43c6bbd48",
+      "input": [],
+      "output": []
+    }
+  ],
+  "isTemplate": false,
+  "templateProjectData": {},
+  "publishData": {},
+  "targetFramework": "Windows"
+}

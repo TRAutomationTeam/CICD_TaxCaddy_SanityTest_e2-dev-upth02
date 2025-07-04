@@ -1,0 +1,660 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="TestSummary_DataService_CRUD" this:TestSummary_DataService_CRUD.in_TestReportExcel="C:\Automation Team\Sanity Testing\Test Summary Report\SanityTest_.xlsx" xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities" xmlns:e="clr-namespace:ExceptionClassifier;assembly=ExceptionClassifier" xmlns:f="clr-namespace:Fileroom_SanityTest;assembly=DataService.Fileroom_SanityTest" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:s="clr-namespace:System;assembly=System.Private.CoreLib" xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation" xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation" xmlns:scg="clr-namespace:System.Collections.Generic;assembly=System.Private.CoreLib" xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=System.Private.CoreLib" xmlns:sd="clr-namespace:System.Data;assembly=System.Data.Common" xmlns:this="clr-namespace:" xmlns:uda="clr-namespace:UiPath.DataService.Activities;assembly=UiPath.DataService.Activities.Core" xmlns:udam="clr-namespace:UiPath.DataService.Activities.Models;assembly=UiPath.DataService.Activities.Core" xmlns:ue="clr-namespace:UiPath.Excel;assembly=UiPath.Excel.Activities" xmlns:ueab="clr-namespace:UiPath.Excel.Activities.Business;assembly=UiPath.Excel.Activities" xmlns:ui="http://schemas.uipath.com/workflow/activities" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <x:Members>
+    <x:Property Name="in_Config" Type="InArgument(scg:Dictionary(x:String, x:Object))" />
+    <x:Property Name="in_TestReportExcel" Type="InArgument(x:String)" />
+    <x:Property Name="in_TransactionItem" Type="InArgument(ui:QueueItem)" />
+  </x:Members>
+  <this:TestSummary_DataService_CRUD.in_TransactionItem>
+    <InArgument x:TypeArguments="ui:QueueItem" />
+  </this:TestSummary_DataService_CRUD.in_TransactionItem>
+  <VisualBasic.Settings>
+    <x:Null />
+  </VisualBasic.Settings>
+  <sap:VirtualizedContainerService.HintSize>1408.8,6454.4</sap:VirtualizedContainerService.HintSize>
+  <sap2010:WorkflowViewState.IdRef>TestSummary_DataService_CRUD_1</sap2010:WorkflowViewState.IdRef>
+  <TextExpression.NamespacesForImplementation>
+    <sco:Collection x:TypeArguments="x:String">
+      <x:String>System.Activities</x:String>
+      <x:String>System.Activities.Statements</x:String>
+      <x:String>System.Activities.Expressions</x:String>
+      <x:String>System.Activities.Validation</x:String>
+      <x:String>System.Activities.XamlIntegration</x:String>
+      <x:String>Microsoft.VisualBasic</x:String>
+      <x:String>Microsoft.VisualBasic.Activities</x:String>
+      <x:String>System</x:String>
+      <x:String>System.Collections</x:String>
+      <x:String>System.Collections.Generic</x:String>
+      <x:String>System.Collections.ObjectModel</x:String>
+      <x:String>System.Data</x:String>
+      <x:String>System.Diagnostics</x:String>
+      <x:String>System.Drawing</x:String>
+      <x:String>System.IO</x:String>
+      <x:String>System.Linq</x:String>
+      <x:String>System.Net.Mail</x:String>
+      <x:String>System.Xml</x:String>
+      <x:String>System.Xml.Linq</x:String>
+      <x:String>UiPath.Core</x:String>
+      <x:String>UiPath.Core.Activities</x:String>
+      <x:String>System.Windows.Markup</x:String>
+      <x:String>GlobalVariablesNamespace</x:String>
+      <x:String>GlobalConstantsNamespace</x:String>
+      <x:String>System.Linq.Expressions</x:String>
+      <x:String>System.Runtime.Serialization</x:String>
+      <x:String>System.Reflection</x:String>
+      <x:String>TR_Aut_Workflow_Performer_DD_2023</x:String>
+      <x:String>UiPath.DataService.Definition</x:String>
+      <x:String>UiPath.Excel</x:String>
+      <x:String>UiPath.Excel.Model</x:String>
+      <x:String>System.ComponentModel</x:String>
+      <x:String>System.Xml.Serialization</x:String>
+      <x:String>UiPath.Excel.Activities.Business</x:String>
+      <x:String>UiPath.Shared.Activities</x:String>
+      <x:String>UiPath.DataTableUtilities</x:String>
+      <x:String>UiPath.DataService.Activities</x:String>
+      <x:String>UiPath.DataService.Activities.Models</x:String>
+      <x:String>System.Activities.Runtime.Collections</x:String>
+      <x:String>Fileroom_SanityTest</x:String>
+      <x:String>ExceptionClassifier</x:String>
+      <x:String>ExceptionHandler</x:String>
+      <x:String>System.Numerics</x:String>
+      <x:String>System.Text.RegularExpressions</x:String>
+      <x:String>UiPath.CV</x:String>
+      <x:String>UiPath.CV.Activities</x:String>
+      <x:String>UiPath.CV.Activities.Interfaces</x:String>
+      <x:String>UiPath.Platform.ObjectLibrary</x:String>
+      <x:String>UiPath.Platform.ResourceHandling</x:String>
+      <x:String>UiPath.Platform.SyncObjects</x:String>
+      <x:String>UiPath.Shared.ObjectLibrary</x:String>
+      <x:String>UiPath.UIAutomationCore.Contracts</x:String>
+      <x:String>UiPath.UIAutomationNext.Activities</x:String>
+      <x:String>UiPath.UIAutomationNext.Activities.Services.RuntimeAnalyze</x:String>
+      <x:String>UiPath.UIAutomationNext.Contracts</x:String>
+      <x:String>UiPath.UIAutomationNext.Enums</x:String>
+      <x:String>UiPath.UIAutomationNext.Models</x:String>
+      <x:String>UiPath.UIAutomationNext.Models.CV</x:String>
+    </sco:Collection>
+  </TextExpression.NamespacesForImplementation>
+  <TextExpression.ReferencesForImplementation>
+    <sco:Collection x:TypeArguments="AssemblyReference">
+      <AssemblyReference>Microsoft.VisualBasic</AssemblyReference>
+      <AssemblyReference>mscorlib</AssemblyReference>
+      <AssemblyReference>System</AssemblyReference>
+      <AssemblyReference>System.Activities</AssemblyReference>
+      <AssemblyReference>System.ComponentModel.TypeConverter</AssemblyReference>
+      <AssemblyReference>System.Core</AssemblyReference>
+      <AssemblyReference>System.Data</AssemblyReference>
+      <AssemblyReference>System.Data.Common</AssemblyReference>
+      <AssemblyReference>System.Data.DataSetExtensions</AssemblyReference>
+      <AssemblyReference>System.Drawing</AssemblyReference>
+      <AssemblyReference>System.Drawing.Common</AssemblyReference>
+      <AssemblyReference>System.Drawing.Primitives</AssemblyReference>
+      <AssemblyReference>System.Linq</AssemblyReference>
+      <AssemblyReference>System.Net.Mail</AssemblyReference>
+      <AssemblyReference>System.ObjectModel</AssemblyReference>
+      <AssemblyReference>System.Private.CoreLib</AssemblyReference>
+      <AssemblyReference>System.Xaml</AssemblyReference>
+      <AssemblyReference>System.Xml</AssemblyReference>
+      <AssemblyReference>System.Xml.Linq</AssemblyReference>
+      <AssemblyReference>UiPath.System.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.UiAutomation.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.Studio.Constants</AssemblyReference>
+      <AssemblyReference>UiPath.Excel.Activities.Design</AssemblyReference>
+      <AssemblyReference>UiPath.Python</AssemblyReference>
+      <AssemblyReference>System.Console</AssemblyReference>
+      <AssemblyReference>System.Security.Permissions</AssemblyReference>
+      <AssemblyReference>System.Configuration.ConfigurationManager</AssemblyReference>
+      <AssemblyReference>System.ComponentModel</AssemblyReference>
+      <AssemblyReference>System.Memory</AssemblyReference>
+      <AssemblyReference>System.Private.Uri</AssemblyReference>
+      <AssemblyReference>System.Linq.Expressions</AssemblyReference>
+      <AssemblyReference>System.Private.ServiceModel</AssemblyReference>
+      <AssemblyReference>System.Private.DataContractSerialization</AssemblyReference>
+      <AssemblyReference>System.Runtime.Serialization.Formatters</AssemblyReference>
+      <AssemblyReference>System.Runtime.Serialization.Primitives</AssemblyReference>
+      <AssemblyReference>System.Reflection.DispatchProxy</AssemblyReference>
+      <AssemblyReference>System.Reflection.TypeExtensions</AssemblyReference>
+      <AssemblyReference>System.Reflection.Metadata</AssemblyReference>
+      <AssemblyReference>System.Reflection.MetadataLoadContext</AssemblyReference>
+      <AssemblyReference>System.Collections</AssemblyReference>
+      <AssemblyReference>System.Linq.Async</AssemblyReference>
+      <AssemblyReference>Microsoft.Extensions.DependencyModel</AssemblyReference>
+      <AssemblyReference>System.Collections.NonGeneric</AssemblyReference>
+      <AssemblyReference>DataService.TR_Aut_Workflow_Performer_DD_2023</AssemblyReference>
+      <AssemblyReference>netstandard</AssemblyReference>
+      <AssemblyReference>UiPath.DataService.Definition</AssemblyReference>
+      <AssemblyReference>UiPath.Excel.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.Excel</AssemblyReference>
+      <AssemblyReference>System.ComponentModel.EventBasedAsync</AssemblyReference>
+      <AssemblyReference>PresentationFramework</AssemblyReference>
+      <AssemblyReference>WindowsBase</AssemblyReference>
+      <AssemblyReference>System.ComponentModel.Primitives</AssemblyReference>
+      <AssemblyReference>System.Private.Xml</AssemblyReference>
+      <AssemblyReference>UiPath.Testing.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.IntelligentOCR.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.OCR.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.DocumentUnderstanding.ML.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.DataService.Activities.Core</AssemblyReference>
+      <AssemblyReference>UiPath.UIAutomationCore</AssemblyReference>
+      <AssemblyReference>UiPath.Python.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.PDF.Activities</AssemblyReference>
+      <AssemblyReference>System.Data.SqlClient</AssemblyReference>
+      <AssemblyReference>System.CodeDom</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualBasic.Forms</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualBasic.Core</AssemblyReference>
+      <AssemblyReference>DataService.Fileroom_SanityTest</AssemblyReference>
+      <AssemblyReference>ExceptionClassifier</AssemblyReference>
+      <AssemblyReference>ExceptionHandler</AssemblyReference>
+      <AssemblyReference>DataService.ExceptionHandler</AssemblyReference>
+      <AssemblyReference>System.Runtime.Numerics</AssemblyReference>
+      <AssemblyReference>System.Text.RegularExpressions</AssemblyReference>
+      <AssemblyReference>UiPath.CV</AssemblyReference>
+      <AssemblyReference>UiPath.CV.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.Platform</AssemblyReference>
+      <AssemblyReference>UiPath.UIAutomationNext.Activities.Design</AssemblyReference>
+      <AssemblyReference>UiPath.UIAutomationNext.Activities</AssemblyReference>
+      <AssemblyReference>UiPath.UIAutomationNext</AssemblyReference>
+    </sco:Collection>
+  </TextExpression.ReferencesForImplementation>
+  <sap:WorkflowViewStateService.ViewState>
+    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+      <x:Boolean x:Key="ShouldExpandAll">True</x:Boolean>
+      <x:Boolean x:Key="ShouldCollapseAll">False</x:Boolean>
+    </scg:Dictionary>
+  </sap:WorkflowViewStateService.ViewState>
+  <Sequence DisplayName="TestSummary_DataService_CRUD" sap:VirtualizedContainerService.HintSize="1078.4,6389.6" sap2010:WorkflowViewState.IdRef="Sequence_1">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="f:TRSanityMaster" sap2010:Annotation.AnnotationText="Type 't:TRAutomationMaster' ('clr-namespace:TR_Aut_Workflow_Performer_DD_2023;assembly=DataService.TR_Aut_Workflow_Performer_DD_2023') could not be resolved and was automatically replaced with 'UnknownType'&#xA;Type 'f:TRSanityMaster' ('clr-namespace:Fileroom_SanityTest;assembly=DataService.Fileroom_SanityTest') could not be resolved and was automatically replaced with 'UnknownType'&#xA;Type 'f:TRAutomationMaster' ('clr-namespace:Fileroom_SanityTest;assembly=DataService.Fileroom_SanityTest') could not be resolved and was automatically replaced with 'UnknownType'" Name="AutomationMasterRecord" />
+      <Variable x:TypeArguments="sd:DataTable" Name="dt_TransposedSummaryReport" />
+      <Variable x:TypeArguments="f:TRSanityMaster" sap2010:Annotation.AnnotationText="Type 't:TRAutomationMaster' ('clr-namespace:TR_Aut_Workflow_Performer_DD_2023;assembly=DataService.TR_Aut_Workflow_Performer_DD_2023') could not be resolved and was automatically replaced with 'UnknownType'&#xA;Type 'f:TRSanityMaster' ('clr-namespace:Fileroom_SanityTest;assembly=DataService.Fileroom_SanityTest') could not be resolved and was automatically replaced with 'UnknownType'&#xA;Type 'f:TRAutomationMaster' ('clr-namespace:Fileroom_SanityTest;assembly=DataService.Fileroom_SanityTest') could not be resolved and was automatically replaced with 'UnknownType'" Name="ReportRecord" />
+      <Variable x:TypeArguments="x:String" Name="ReportingMessage" />
+      <Variable x:TypeArguments="x:Int32" Name="counterException" />
+    </Sequence.Variables>
+    <sap:WorkflowViewStateService.ViewState>
+      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+      </scg:Dictionary>
+    </sap:WorkflowViewStateService.ViewState>
+    <TryCatch DisplayName="Data Service CRUD Ops" sap:VirtualizedContainerService.HintSize="1016,6300.8" sap2010:WorkflowViewState.IdRef="TryCatch_1">
+      <TryCatch.Try>
+        <Sequence DisplayName="Try" sap:VirtualizedContainerService.HintSize="979.2,5707.2" sap2010:WorkflowViewState.IdRef="Sequence_10">
+          <sap:WorkflowViewStateService.ViewState>
+            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+              <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+              <x:Boolean x:Key="IsPinned">False</x:Boolean>
+            </scg:Dictionary>
+          </sap:WorkflowViewStateService.ViewState>
+          <ui:KillProcess AppliesTo="{x:Null}" ContinueOnError="{x:Null}" Process="{x:Null}" DisplayName="Kill Process" sap:VirtualizedContainerService.HintSize="916.8,166.4" sap2010:WorkflowViewState.IdRef="KillProcess_1" ProcessName="excel">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ui:KillProcess>
+          <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="916.8,174.4" sap2010:WorkflowViewState.IdRef="LogMessage_1" Level="Info" Message="[&quot;Data Service CRUD Operations started&quot;]">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ui:LogMessage>
+          <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="916.8,174.4" sap2010:WorkflowViewState.IdRef="LogMessage_3" Level="Info" Message="[&quot;**************************************************************************************&quot;]">
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ui:LogMessage>
+          <Assign DisplayName="Init Automation Master entity" sap:VirtualizedContainerService.HintSize="916.8,113.6" sap2010:WorkflowViewState.IdRef="Assign_1">
+            <Assign.To>
+              <OutArgument x:TypeArguments="f:TRSanityMaster">[AutomationMasterRecord]</OutArgument>
+            </Assign.To>
+            <Assign.Value>
+              <InArgument x:TypeArguments="f:TRSanityMaster">[New TRSanityMaster]</InArgument>
+            </Assign.Value>
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </Assign>
+          <ueab:ExcelProcessScopeX DisplayAlerts="{x:Null}" ExistingProcessAction="{x:Null}" FileConflictResolution="{x:Null}" LaunchMethod="{x:Null}" LaunchTimeout="{x:Null}" MacroSettings="{x:Null}" ProcessMode="{x:Null}" DisplayName="Data injection TestSummary Record to Data Service layer" sap:VirtualizedContainerService.HintSize="916.8,4989.6" sap2010:WorkflowViewState.IdRef="ExcelProcessScopeX_2" ShowExcelWindow="False">
+            <ueab:ExcelProcessScopeX.Body>
+              <ActivityAction x:TypeArguments="ui:IExcelProcess">
+                <ActivityAction.Argument>
+                  <DelegateInArgument x:TypeArguments="ui:IExcelProcess" Name="ExcelProcessScopeTag" />
+                </ActivityAction.Argument>
+                <Sequence DisplayName="Do" sap:VirtualizedContainerService.HintSize="883.2,4880" sap2010:WorkflowViewState.IdRef="Sequence_8">
+                  <sap:WorkflowViewStateService.ViewState>
+                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                    </scg:Dictionary>
+                  </sap:WorkflowViewStateService.ViewState>
+                  <ueab:ExcelApplicationCard Password="{x:Null}" ReadFormatting="{x:Null}" SensitivityLabel="{x:Null}" DisplayName="Test Summary Report" sap:VirtualizedContainerService.HintSize="820.8,4791.2" sap2010:WorkflowViewState.IdRef="ExcelApplicationCard_2" ResizeWindow="None" SensitivityOperation="None" WorkbookPath="[in_TestReportExcel]">
+                    <ueab:ExcelApplicationCard.Body>
+                      <ActivityAction x:TypeArguments="ue:IWorkbookQuickHandle">
+                        <ActivityAction.Argument>
+                          <DelegateInArgument x:TypeArguments="ue:IWorkbookQuickHandle" Name="Excel" />
+                        </ActivityAction.Argument>
+                        <Sequence DisplayName="Do" sap:VirtualizedContainerService.HintSize="787.2,4498.4" sap2010:WorkflowViewState.IdRef="Sequence_7">
+                          <sap:WorkflowViewStateService.ViewState>
+                            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                            </scg:Dictionary>
+                          </sap:WorkflowViewStateService.ViewState>
+                          <TryCatch DisplayName="Exception Classifier" sap:VirtualizedContainerService.HintSize="724.8,2153.6" sap2010:WorkflowViewState.IdRef="TryCatch_2">
+                            <TryCatch.Try>
+                              <Sequence DisplayName="Exception Classifier" sap:VirtualizedContainerService.HintSize="688,1596" sap2010:WorkflowViewState.IdRef="Sequence_12">
+                                <Sequence.Variables>
+                                  <Variable x:TypeArguments="sd:DataTable" Name="dt_Exception" />
+                                </Sequence.Variables>
+                                <sap:WorkflowViewStateService.ViewState>
+                                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                    <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                    <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                  </scg:Dictionary>
+                                </sap:WorkflowViewStateService.ViewState>
+                                <ueab:ReadRangeX DisplayName="Summary Report" sap:VirtualizedContainerService.HintSize="625.6,201.6" sap2010:WorkflowViewState.IdRef="ReadRangeX_2" Range="[Excel.Sheet(&quot;Summary Report&quot;).Range(&quot;D1&quot;)]" SaveTo="[dt_Exception]" />
+                                <ui:ForEachRow ColumnNames="{x:Null}" CurrentIndex="{x:Null}" DataTable="[dt_Exception]" DisplayName="Iterate Exception info Component level" sap:VirtualizedContainerService.HintSize="625.6,1140" sap2010:WorkflowViewState.IdRef="ForEachRow_2">
+                                  <ui:ForEachRow.Body>
+                                    <ActivityAction x:TypeArguments="sd:DataRow">
+                                      <ActivityAction.Argument>
+                                        <DelegateInArgument x:TypeArguments="sd:DataRow" Name="CurrentRow" />
+                                      </ActivityAction.Argument>
+                                      <Sequence DisplayName="Body" sap:VirtualizedContainerService.HintSize="592,942.4" sap2010:WorkflowViewState.IdRef="Sequence_13">
+                                        <Sequence.Variables>
+                                          <Variable x:TypeArguments="x:String" Name="ClassifiedMessage" />
+                                        </Sequence.Variables>
+                                        <sap:WorkflowViewStateService.ViewState>
+                                          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                          </scg:Dictionary>
+                                        </sap:WorkflowViewStateService.ViewState>
+                                        <e:ExceptionClassifier bool_InitMode="{x:Null}" in_FlowType="{x:Null}" sap:VirtualizedContainerService.HintSize="529.6,278.4" sap2010:WorkflowViewState.IdRef="ExceptionClassifier_2" in_ExceptionMessage="[CurrentRow(&quot;Exception&quot;).ToString]" out_ClassifiedMessage="[ClassifiedMessage]" />
+                                        <If Condition="[string.IsNullOrEmpty(ClassifiedMessage)]" DisplayName="Reporting Exception Info" sap:VirtualizedContainerService.HintSize="529.6,575.2" sap2010:WorkflowViewState.IdRef="If_1">
+                                          <If.Then>
+                                            <Sequence DisplayName="Then" sap:VirtualizedContainerService.HintSize="416,104.8" sap2010:WorkflowViewState.IdRef="Sequence_14">
+                                              <sap:WorkflowViewStateService.ViewState>
+                                                <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                                  <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                                </scg:Dictionary>
+                                              </sap:WorkflowViewStateService.ViewState>
+                                            </Sequence>
+                                          </If.Then>
+                                          <If.Else>
+                                            <Sequence DisplayName="Else" sap:VirtualizedContainerService.HintSize="496,308.8" sap2010:WorkflowViewState.IdRef="Sequence_15">
+                                              <sap:WorkflowViewStateService.ViewState>
+                                                <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                                  <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                                </scg:Dictionary>
+                                              </sap:WorkflowViewStateService.ViewState>
+                                              <Assign DisplayName="Reporting Message" sap:VirtualizedContainerService.HintSize="433.6,115.2" sap2010:WorkflowViewState.IdRef="Assign_2">
+                                                <Assign.To>
+                                                  <OutArgument x:TypeArguments="x:String">[ReportingMessage]</OutArgument>
+                                                </Assign.To>
+                                                <Assign.Value>
+                                                  <InArgument x:TypeArguments="x:String" xml:space="preserve">[If(counterException=0,
+CurrentRow("Component Name").ToString+" - "+ClassifiedMessage,
+ReportingMessage+" | "+CurrentRow("Component Name").ToString+" - "+ClassifiedMessage)]</InArgument>
+                                                </Assign.Value>
+                                              </Assign>
+                                              <Assign DisplayName="counter" sap:VirtualizedContainerService.HintSize="433.6,104.8" sap2010:WorkflowViewState.IdRef="Assign_3">
+                                                <Assign.To>
+                                                  <OutArgument x:TypeArguments="x:Int32">[counterException]</OutArgument>
+                                                </Assign.To>
+                                                <Assign.Value>
+                                                  <InArgument x:TypeArguments="x:Int32">[counterException+1]</InArgument>
+                                                </Assign.Value>
+                                              </Assign>
+                                            </Sequence>
+                                          </If.Else>
+                                        </If>
+                                      </Sequence>
+                                    </ActivityAction>
+                                  </ui:ForEachRow.Body>
+                                  <sap:WorkflowViewStateService.ViewState>
+                                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                      <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                    </scg:Dictionary>
+                                  </sap:WorkflowViewStateService.ViewState>
+                                </ui:ForEachRow>
+                                <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="625.6,165.6" sap2010:WorkflowViewState.IdRef="LogMessage_6" Level="Info" Message="[&quot;Reporting Exception - &quot;+ReportingMessage]" />
+                              </Sequence>
+                            </TryCatch.Try>
+                            <TryCatch.Catches>
+                              <Catch x:TypeArguments="s:Exception" sap:VirtualizedContainerService.HintSize="691.2,213.6" sap2010:WorkflowViewState.IdRef="Catch`1_2">
+                                <sap:WorkflowViewStateService.ViewState>
+                                  <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                    <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                                    <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                  </scg:Dictionary>
+                                </sap:WorkflowViewStateService.ViewState>
+                                <ActivityAction x:TypeArguments="s:Exception">
+                                  <ActivityAction.Argument>
+                                    <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+                                  </ActivityAction.Argument>
+                                  <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="334.4,142.4" sap2010:WorkflowViewState.IdRef="LogMessage_7" Level="Warn" Message="[&quot;Reporting Exception error- &quot;+exception.Message]" />
+                                </ActivityAction>
+                              </Catch>
+                            </TryCatch.Catches>
+                          </TryCatch>
+                          <ueab:CopyPasteRangeX DestinationRange="[excel.Sheet(in_Config(&quot;TestSummary_TransposedWorksheet&quot;).ToString).Range(in_Config(&quot;TestSummary_TransposeRange&quot;).ToString)]" DisplayName="Transpose Summary Report" sap:VirtualizedContainerService.HintSize="724.8,273.6" sap2010:WorkflowViewState.IdRef="CopyPasteRangeX_1" PasteOptions="Values" SourceRange="[excel.Sheet(in_Config(&quot;TestSummary_SummaryWorksheet&quot;).ToString).Range(in_Config(&quot;TestSummary_SummaryRange&quot;).ToString)]" Transpose="True" />
+                          <ueab:ReadRangeX DisplayName="Read Transposed Summary Range" sap:VirtualizedContainerService.HintSize="724.8,201.6" sap2010:WorkflowViewState.IdRef="ReadRangeX_1" Range="[excel.Sheet(&quot;Transposed Data&quot;).Range(in_Config(&quot;TestSummary_TransposeRange&quot;).ToString)]" SaveTo="[dt_TransposedSummaryReport]" />
+                          <ui:ForEachRow ColumnNames="{x:Null}" CurrentIndex="{x:Null}" DataTable="[dt_TransposedSummaryReport]" DisplayName="Binder Specific entry - Create Master Entity in Data Service" sap:VirtualizedContainerService.HintSize="724.8,1667.2" sap2010:WorkflowViewState.IdRef="ForEachRow_1">
+                            <ui:ForEachRow.Body>
+                              <ActivityAction x:TypeArguments="sd:DataRow">
+                                <ActivityAction.Argument>
+                                  <DelegateInArgument x:TypeArguments="sd:DataRow" Name="Row" />
+                                </ActivityAction.Argument>
+                                <Sequence DisplayName="Body" sap:VirtualizedContainerService.HintSize="540.8,1469.6" sap2010:WorkflowViewState.IdRef="Sequence_9">
+                                  <sap:WorkflowViewStateService.ViewState>
+                                    <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                      <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                    </scg:Dictionary>
+                                  </sap:WorkflowViewStateService.ViewState>
+                                  <ui:MultipleAssign DisplayName="Test Summary Automation Master Records" sap:VirtualizedContainerService.HintSize="478.4,866.4" sap2010:WorkflowViewState.IdRef="MultipleAssign_1">
+                                    <ui:MultipleAssign.AssignOperations>
+                                      <scg:List x:TypeArguments="ui:AssignOperation" Capacity="64">
+                                        <ui:AssignOperation sap:VirtualizedContainerService.HintSize="334.4,24.799999999999997" sap2010:WorkflowViewState.IdRef="AssignOperation_2">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.BinderID]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Binder ID").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_3">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.EngagementType]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Engagement Type").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_4">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.ServiceType]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.item("Service Type").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_5">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TaxSoftware]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Tax Software").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_6">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.LeadsheetType]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Leadsheet Type").ToString.trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_8">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.SubmissionType]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Submission Type").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_9">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TaxYear]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Tax Year").ToString.trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_10">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.StartTime]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Start Time").ToString.trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_11">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.EndTime]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("End Time").ToString.trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_16">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.Machine]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Machine").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_17">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.UserEmail]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[in_TransactionItem.SpecificContent("Owner").ToString]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_18">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.ModeofExecution]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.item("Mode of Execution").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_19">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.ExecutionStatus]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Execution Status").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_45">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalExecutionTime]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total Execution Time").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_46">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalApplicationWaitTime]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total Application Wait Time").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_20">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalTCsApplicable]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total TC's - Applicable").ToString.trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_21">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalTCsExecuted]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total TC's - Executed").ToString.trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_22">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalTCsPass]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total TC's - Pass").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_23">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalTCsFail]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total TC's - Fail").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_24">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.TotalTCsNotApplicable]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.Item("Total TC's - Not Applicable").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_47">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.ScriptedOn]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Now.ToString("dd/MM/yyyy")]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_48">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.UserIdentity]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[Row.item("User Identity").ToString.Trim]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_49">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.Environment]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[If(in_Config("in_str_Fileroomurl").ToString().Contains("production"), "LIVE", If(in_Config("in_str_Fileroomurl").ToString().Contains("stgtr"), "STAGE", "QAT"))]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                        <ui:AssignOperation sap2010:WorkflowViewState.IdRef="AssignOperation_50">
+                                          <ui:AssignOperation.To>
+                                            <OutArgument x:TypeArguments="x:String">[AutomationMasterRecord.ExceptionDetails]</OutArgument>
+                                          </ui:AssignOperation.To>
+                                          <ui:AssignOperation.Value>
+                                            <InArgument x:TypeArguments="x:String">[ReportingMessage]</InArgument>
+                                          </ui:AssignOperation.Value>
+                                        </ui:AssignOperation>
+                                      </scg:List>
+                                    </ui:MultipleAssign.AssignOperations>
+                                    <sap:WorkflowViewStateService.ViewState>
+                                      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                        <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                      </scg:Dictionary>
+                                    </sap:WorkflowViewStateService.ViewState>
+                                  </ui:MultipleAssign>
+                                  <uda:CreateEntityRecord x:TypeArguments="f:TRSanityMaster" VisibleDynamicPropertiesInfo="{x:Null}" ContinueOnError="False" DisplayName="Create Entity Record" EntityId="170805a8-b016-f011-aaa7-002248a1377f" ExpansionDepth="2" sap:VirtualizedContainerService.HintSize="478.4,174.4" sap2010:WorkflowViewState.IdRef="CreateEntityRecord`1_2" InputEntity="[AutomationMasterRecord]" InputEntityInFieldView="[new Fileroom_SanityTest.TRSanityMaster()]" IsInRecordView="True" OutputEntity="[ReportRecord]" TimeoutInMs="30000">
+                                    <uda:CreateEntityRecord.State>
+                                      <udam:RecordState IsInRecordView="True">
+                                        <udam:RecordState.SelectedFields>
+                                          <scg:List x:TypeArguments="udam:DynamicEntityField" Capacity="3">
+                                            <udam:DynamicEntityField Id="21fae5c5-b016-f011-aaa7-002248a1377f" Name="BinderID" />
+                                            <udam:DynamicEntityField Id="d2387f1f-b116-f011-aaa7-002248a1377f" Name="EndTime">
+                                              <udam:DynamicEntityField.ArgumentValue>
+                                                <InArgument x:TypeArguments="x:String" />
+                                              </udam:DynamicEntityField.ArgumentValue>
+                                            </udam:DynamicEntityField>
+                                            <udam:DynamicEntityField Id="b94dfe03-b116-f011-aaa7-002248a1377f" Name="EngagementType">
+                                              <udam:DynamicEntityField.ArgumentValue>
+                                                <InArgument x:TypeArguments="x:String" />
+                                              </udam:DynamicEntityField.ArgumentValue>
+                                            </udam:DynamicEntityField>
+                                          </scg:List>
+                                        </udam:RecordState.SelectedFields>
+                                      </udam:RecordState>
+                                    </uda:CreateEntityRecord.State>
+                                  </uda:CreateEntityRecord>
+                                  <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="478.4,174.4" sap2010:WorkflowViewState.IdRef="LogMessage_2" Level="[UiPath.Core.Activities.LogLevel.Info]" Message="[&quot;Data Service Reporter ID generated - &quot;+ReportRecord.Id.ToString +&quot; for ref# &quot;+row.Item(&quot;Binder ID&quot;).ToString]">
+                                    <sap:WorkflowViewStateService.ViewState>
+                                      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                        <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                      </scg:Dictionary>
+                                    </sap:WorkflowViewStateService.ViewState>
+                                  </ui:LogMessage>
+                                  <ui:LogMessage DisplayName="Log Message" sap:VirtualizedContainerService.HintSize="478.4,165.6" sap2010:WorkflowViewState.IdRef="LogMessage_4" Level="Info" Message="[&quot;**************************************************************************************&quot;]">
+                                    <sap:WorkflowViewStateService.ViewState>
+                                      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                                        <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                                      </scg:Dictionary>
+                                    </sap:WorkflowViewStateService.ViewState>
+                                  </ui:LogMessage>
+                                </Sequence>
+                              </ActivityAction>
+                            </ui:ForEachRow.Body>
+                            <sap:WorkflowViewStateService.ViewState>
+                              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                                <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+                                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                              </scg:Dictionary>
+                            </sap:WorkflowViewStateService.ViewState>
+                          </ui:ForEachRow>
+                          <ueab:DeleteSheetX DisplayName="Delete Transposed Sheet" sap:VirtualizedContainerService.HintSize="724.8,113.6" sap2010:WorkflowViewState.IdRef="DeleteSheetX_1" Sheet="[excel.Sheet(&quot;Transposed Data&quot;)]" />
+                        </Sequence>
+                      </ActivityAction>
+                    </ueab:ExcelApplicationCard.Body>
+                    <sap:WorkflowViewStateService.ViewState>
+                      <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                        <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                        <x:Boolean x:Key="IsPinned">False</x:Boolean>
+                      </scg:Dictionary>
+                    </sap:WorkflowViewStateService.ViewState>
+                  </ueab:ExcelApplicationCard>
+                </Sequence>
+              </ActivityAction>
+            </ueab:ExcelProcessScopeX.Body>
+            <sap:WorkflowViewStateService.ViewState>
+              <scg:Dictionary x:TypeArguments="x:String, x:Object">
+                <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+                <x:Boolean x:Key="IsPinned">False</x:Boolean>
+              </scg:Dictionary>
+            </sap:WorkflowViewStateService.ViewState>
+          </ueab:ExcelProcessScopeX>
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" sap:VirtualizedContainerService.HintSize="982.4,213.6" sap2010:WorkflowViewState.IdRef="Catch`1_1">
+          <sap:WorkflowViewStateService.ViewState>
+            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+              <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+              <x:Boolean x:Key="IsPinned">False</x:Boolean>
+            </scg:Dictionary>
+          </sap:WorkflowViewStateService.ViewState>
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument>
+              <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+            </ActivityAction.Argument>
+            <ui:LogMessage DisplayName="Log failure of data service injection" sap:VirtualizedContainerService.HintSize="334.4,142.4" sap2010:WorkflowViewState.IdRef="LogMessage_5" Level="Error" Message="[&quot;Failed to inject data service record - &quot;+exception.Message]" />
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+      <TryCatch.Finally>
+        <Sequence DisplayName="Finally" sap:VirtualizedContainerService.HintSize="416,104.8" sap2010:WorkflowViewState.IdRef="Sequence_11">
+          <sap:WorkflowViewStateService.ViewState>
+            <scg:Dictionary x:TypeArguments="x:String, x:Object">
+              <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            </scg:Dictionary>
+          </sap:WorkflowViewStateService.ViewState>
+        </Sequence>
+      </TryCatch.Finally>
+    </TryCatch>
+  </Sequence>
+</Activity>
