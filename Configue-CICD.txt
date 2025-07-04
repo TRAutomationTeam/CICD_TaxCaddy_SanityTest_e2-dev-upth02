@@ -1,0 +1,13 @@
+﻿PROJECT_NAME - CICD_TaxCaddy_SanityTest
+ENVIRONMENT - LIVE
+RELEASE_NOTES - July18
+BRANCH - main
+UIPATH_CLI_PATH - C:\uipathcli\23.10.8753.32995\tools\uipcli.exe
+FOLDER_ORGANIZATION_UNIT - Automation
+FOLDER_DEPLOY_UNIT - Unattended
+MACHINE - e2-dev-upth01
+ROBOT - minal-unattended
+TIMEOUT_SEC - 6000
+BUILD - No
+RUN - Yes
+DEPLOY - No
