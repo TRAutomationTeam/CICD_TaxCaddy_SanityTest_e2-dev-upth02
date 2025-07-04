@@ -1,0 +1,169 @@
+name: Development workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Configue-CICD.txt'
+
+# Here the environment variable is declared in workflow levels 
+env: 
+  # Replace with your Orchestrator Values 
+  PROJECT_FOLDER: ${{ github.action_path }}
+  ORCH_URL: ${{ secrets.UIPATH_ORCH_URL }}
+  ORCH_TENANT: ${{ secrets.UIPATH_TENANT_ID }}
+  ORCH_CLIENT_ID: ${{ secrets.UIPATH_CLIENT_ID }}
+  ORCH_USER_KEY: ${{ secrets.UIPATH_USER_KEY }}
+  ORCH_ACC_NAME: ${{ secrets.UIPATH_ACCOUNT_ID }}
+
+jobs:
+  print-details:
+    runs-on: self-hosted
+    steps:
+      - name: echo-default-env-variables
+        run: |
+          Write-Host "Home: $env:HOME"
+          Write-Host "GITHUB_WORKFLOW: $env:GITHUB_WORKFLOW"
+          Write-Host "GITHUB_ACTIONS: $env:GITHUB_ACTIONS"
+          Write-Host "GITHUB_ACTOR: $env:GITHUB_ACTOR"
+          Write-Host "GITHUB_REPOSITORY: $env:GITHUB_REPOSITORY"
+          Write-Host "GITHUB_EVENT_NAME: $env:GITHUB_EVENT_NAME"
+          Write-Host "GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE"
+          Write-Host "GITHUB_SHA: $env:GITHUB_SHA"
+          Write-Host "GITHUB_REF: $env:GITHUB_REF"
+  cleaner:
+    runs-on: self-hosted
+    steps:
+      - name: Runner workspace path
+        shell: pwsh
+        run: |
+          echo "Cleaning up previous run"
+          Remove-Item -Path "${{ github.workspace }}" -Recurse -Force -ErrorAction SilentlyContinue
+
+  config:
+    runs-on: self-hosted
+    outputs:
+      build: ${{ steps.get_build.outputs.build }}
+      run: ${{ steps.get_run.outputs.run }}
+      deploy: ${{ steps.get_deploy.outputs.deploy }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Get BUILD value from Configure-CICD.txt
+        id: get_build
+        shell: pwsh
+        run: |
+          $build = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^BUILD[ ]*-[ ]*(.+)$' }) -replace '^BUILD[ ]*-[ ]*',''
+          echo "build=$build" >> $env:GITHUB_OUTPUT
+      - name: Get RUN value from Configure-CICD.txt
+        id: get_run
+        shell: pwsh
+        run: |
+          $run = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^RUN[ ]*-[ ]*(.+)$' }) -replace '^RUN[ ]*-[ ]*',''
+          echo "run=$run" >> $env:GITHUB_OUTPUT
+      - name: Get DEPLOY value from Configure-CICD.txt
+        id: get_deploy
+        shell: pwsh
+        run: |
+          $deploy = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^DEPLOY[ ]*-[ ]*(.+)$' }) -replace '^DEPLOY[ ]*-[ ]*',''
+          echo "deploy=$deploy" >> $env:GITHUB_OUTPUT
+      - name: Write ENVIRONMENT value to file
+        shell: pwsh
+        run: |
+          $envValue = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^[ ]*ENVIRONMENT[ ]*-[ ]*(.+)$' }) -replace '^[ ]*ENVIRONMENT[ ]*-[ ]*',''
+          $outputPath = 'C:\Automation Team\CICD'
+          if (!(Test-Path $outputPath)) { New-Item -Path $outputPath -ItemType Directory -Force }
+          $envFile = Join-Path $outputPath 'environment.txt'
+          Remove-Item -Path $envFile -Force -ErrorAction SilentlyContinue
+          Set-Content -Path $envFile -Value $envValue
+
+  build-uipath-nuget-package:
+    needs: [cleaner, config]
+    if: needs.config.outputs.build == 'Yes'
+    runs-on: self-hosted
+    steps: 
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Load config values from Configue-CICD.txt
+        id: load_config
+        shell: pwsh
+        run: |
+          $config = Get-Content "${{ github.workspace }}\Configue-CICD.txt"
+          foreach ($line in $config) {
+            if ($line -match '^[ ]*PROJECT_NAME[ ]*-[ ]*(.+)$') { echo "PROJECT_NAME=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*BRANCH[ ]*-[ ]*(.+)$') { echo "BRANCH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*UIPATH_CLI_PATH[ ]*-[ ]*(.+)$') { echo "UIPATH_CLI_PATH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*FOLDER_ORGANIZATION_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_ORG_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*FOLDER_DEPLOY_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_DEPLOY_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*MACHINE[ ]*-[ ]*(.+)$') { echo "MACHINE=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*ROBOT[ ]*-[ ]*(.+)$') { echo "ROBOT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*TIMEOUT_SEC[ ]*-[ ]*(.+)$') { echo "TIMEOUT_SEC=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+          }
+      - name: Print loaded config values
+        shell: pwsh
+        run: |
+          Get-ChildItem Env: | Where-Object { $_.Name -in @('PROJECT_NAME','BRANCH','UIPATH_CLI_PATH','FOLDER_ORG_UNIT','FOLDER_DEPLOY_UNIT','MACHINE','ROBOT','TIMEOUT_SEC') } | ForEach-Object { Write-Host "$($_.Name)=$($_.Value)" }
+      - name: Build Nuget Package
+        shell: powershell
+        run: ${{ github.workspace }}\scripts\UiPathPack.ps1 ${{ github.workspace }}\project.json -destination_folder ${{ github.workspace }}\package -autoVersion -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }}
+      - name: Upload UiPath Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Artifacts
+          path: |
+           package/*.*
+           scripts/*.ps1
+                    
+  run-uipath-nuget-package:
+      needs: [config]
+      if: needs.config.outputs.run == 'Yes'
+      runs-on: self-hosted
+      steps:
+        - name: Load config values from Configue-CICD.txt
+          id: load_config
+          shell: pwsh
+          run: |
+            $config = Get-Content "${{ github.workspace }}\Configue-CICD.txt"
+            foreach ($line in $config) {
+              if ($line -match '^[ ]*PROJECT_NAME[ ]*-[ ]*(.+)$') { echo "PROJECT_NAME=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*BRANCH[ ]*-[ ]*(.+)$') { echo "BRANCH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*UIPATH_CLI_PATH[ ]*-[ ]*(.+)$') { echo "UIPATH_CLI_PATH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*FOLDER_ORGANIZATION_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_ORG_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*FOLDER_DEPLOY_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_DEPLOY_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*MACHINE[ ]*-[ ]*(.+)$') { echo "MACHINE=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*ROBOT[ ]*-[ ]*(.+)$') { echo "ROBOT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+              if ($line -match '^[ ]*TIMEOUT_SEC[ ]*-[ ]*(.+)$') { echo "TIMEOUT_SEC=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            }
+        - name: Print loaded config values
+          shell: pwsh
+          run: |
+            Get-ChildItem Env: | Where-Object { $_.Name -in @('PROJECT_NAME','BRANCH','UIPATH_CLI_PATH','FOLDER_ORG_UNIT','FOLDER_DEPLOY_UNIT','MACHINE','ROBOT','TIMEOUT_SEC') } | ForEach-Object { Write-Host "$($_.Name)=$($_.Value)" }
+        - name: run Package
+          shell: powershell
+          run: |
+            echo "PROJECT_NAME from config: ${{ env.PROJECT_NAME }}"
+            ${{ github.workspace }}\scripts\UiPathJobRun.ps1 ${{ env.PROJECT_NAME }} ${{env.ORCH_URL}} ${{env.ORCH_TENANT}} -userKey ${{env.ORCH_USER_KEY}} -accountName ${{env.ORCH_ACC_NAME}} -folder_organization_unit ${{ env.FOLDER_ORG_UNIT }} -machine ${{ env.MACHINE }} -robots ${{ env.ROBOT }} -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }} -timeout ${{ env.TIMEOUT_SEC }}
+
+  publish-uipath-nuget-package:
+    needs: [run-uipath-nuget-package, config]
+    if: needs.config.outputs.deploy == 'Yes'
+    runs-on: self-hosted
+    steps: 
+      - name: Download UiPath Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Artifacts
+      - name: Load config values from Configue-CICD.txt
+        id: load_config
+        shell: pwsh
+        run: |
+          $config = Get-Content "${{ github.workspace }}\Configue-CICD.txt"
+          foreach ($line in $config) {
+            if ($line -match '^[ ]*UIPATH_CLI_PATH[ ]*-[ ]*(.+)$') { echo "UIPATH_CLI_PATH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*FOLDER_ORGANIZATION_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_ORG_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+            if ($line -match '^[ ]*FOLDER_DEPLOY_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_DEPLOY_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+          }
+      - name: Publish Nuget Package to DEV
+        shell: powershell
+        run: ${{ github.workspace }}\scripts\UiPathDeploy.ps1 ${{ github.workspace }}\package ${{env.ORCH_URL}} ${{env.ORCH_TENANT}} -UserKey ${{env.ORCH_USER_KEY}} -account_name ${{env.ORCH_ACC_NAME}} -folder_organization_unit ${{ env.FOLDER_DEPLOY_UNIT }} -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }}
