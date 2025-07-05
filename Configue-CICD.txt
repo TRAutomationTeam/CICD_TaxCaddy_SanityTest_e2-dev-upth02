@@ -1,6 +1,6 @@
 ﻿PROJECT_NAME - CICD_TaxCaddy_SanityTest
 ENVIRONMENT - LIVE
-RELEASE_NOTES - July4
+RELEASE_NOTES - July7
 BRANCH - main
 UIPATH_CLI_PATH - C:\uipathcli\23.10.8753.32995\tools\uipcli.exe
 FOLDER_ORGANIZATION_UNIT - Automation
