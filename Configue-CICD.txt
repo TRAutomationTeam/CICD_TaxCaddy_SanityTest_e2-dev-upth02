@@ -7,7 +7,7 @@ FOLDER_ORGANIZATION_UNIT - Automation
 FOLDER_DEPLOY_UNIT - Unattended
 MACHINE - e2-dev-upth01
 ROBOT - minal-unattended
-TIMEOUT_SEC - 6000
+TIMEOUT_SEC - 15000
 BUILD - No
 RUN - Yes
 DEPLOY - No
