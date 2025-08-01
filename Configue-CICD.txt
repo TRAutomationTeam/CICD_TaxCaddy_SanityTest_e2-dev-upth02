@@ -1,5 +1,5 @@
 ﻿PROJECT_NAME - API_SanityTest
-ENVIRONMENT - LIVE
+ENVIRONMENT - QAT
 RELEASE_NOTES - July193 API_SanityTest CICD_TaxCaddy_SanityTest Fileroom_SanityTest CICD_Fileroom_SanityTest
 BRANCH - main
 UIPATH_CLI_PATH - C:\uipathcli\23.10.8753.32995\tools\uipcli.exe
