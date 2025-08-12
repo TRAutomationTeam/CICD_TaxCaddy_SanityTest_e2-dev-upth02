@@ -32,6 +32,7 @@ jobs:
           Write-Host "GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE"
           Write-Host "GITHUB_SHA: $env:GITHUB_SHA"
           Write-Host "GITHUB_REF: $env:GITHUB_REF"
+
   cleaner:
     runs-on: self-hosted
     steps:
@@ -106,7 +107,7 @@ jobs:
           Get-ChildItem Env: | Where-Object { $_.Name -in @('PROJECT_NAME','BRANCH','UIPATH_CLI_PATH','FOLDER_ORG_UNIT','FOLDER_DEPLOY_UNIT','MACHINE','ROBOT','TIMEOUT_SEC') } | ForEach-Object { Write-Host "$($_.Name)=$($_.Value)" }
       - name: Build Nuget Package
         shell: powershell
-        run: ${{ github.workspace }}\scripts\UiPathPack.ps1 ${{ github.workspace }}\project.json -destination_folder ${{ github.workspace }}\package -autoVersion -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }}
+        run: & "${{ github.workspace }}\scripts\UiPathPack.ps1" "${{ github.workspace }}\project.json" -destination_folder "${{ github.workspace }}\package" -autoVersion -uipathCliFilePath "${{ env.UIPATH_CLI_PATH }}"
       - name: Upload UiPath Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -120,6 +121,8 @@ jobs:
       if: needs.config.outputs.run == 'Yes'
       runs-on: self-hosted
       steps:
+        - name: Check out repository code
+          uses: actions/checkout@v4
         - name: Load config values from Configue-CICD.txt
           id: load_config
           shell: pwsh
@@ -141,15 +144,20 @@ jobs:
             Get-ChildItem Env: | Where-Object { $_.Name -in @('PROJECT_NAME','BRANCH','UIPATH_CLI_PATH','FOLDER_ORG_UNIT','FOLDER_DEPLOY_UNIT','MACHINE','ROBOT','TIMEOUT_SEC') } | ForEach-Object { Write-Host "$($_.Name)=$($_.Value)" }
         - name: run Package
           shell: powershell
+          env:
+            APP_SECRET: "5#3hH9ZT)*gI!RcM5iw6_OZjPg@(G5ttHol6xP0STt8)Fz%oYmwh_HIx3qThAsLt"
           run: |
             echo "PROJECT_NAME from config: ${{ env.PROJECT_NAME }}"
-            ${{ github.workspace }}\scripts\UiPathJobRun.ps1 ${{ env.PROJECT_NAME }} ${{env.ORCH_URL}} ${{env.ORCH_TENANT}} -accountForApp ${{env.ORCH_ACC_NAME}} -applicationId 0df2fe2f-f8df-45bd-9777-88ab4ce30689 -applicationSecret V$392DIPRL25aBhFn8toXBQ)YyIimxnG8$YhX3FNr))LZ~6T@QpDc3xa09a@nFJ) -applicationScope "OR.Administration OR.Administration.Read OR.Administration.Write OR.Analytics OR.Analytics.Read OR.Analytics.Write OR.Assets OR.Assets.Read OR.Assets.Write OR.Audit OR.Audit.Read OR.Audit.Write OR.BackgroundTasks OR.BackgroundTasks.Read OR.BackgroundTasks.Write OR.Execution OR.Execution.Read OR.Execution.Write OR.Folders OR.Folders.Read OR.Folders.Write OR.Hypervisor OR.Hypervisor.Read OR.Hypervisor.Write OR.Jobs OR.Jobs.Read OR.Jobs.Write OR.License OR.License.Read OR.License.Write OR.Machines OR.Machines.Read OR.Machines.Write OR.ML OR.ML.Read OR.ML.Write OR.Monitoring OR.Monitoring.Read OR.Monitoring.Write OR.Queues OR.Queues.Read OR.Queues.Write OR.Robots OR.Robots.Read OR.Robots.Write OR.Settings OR.Settings.Read OR.Settings.Write OR.Tasks OR.Tasks.Read OR.Tasks.Write OR.TestDataQueues OR.TestDataQueues.Read OR.TestDataQueues.Write OR.TestSetExecutions OR.TestSetExecutions.Read OR.TestSetExecutions.Write OR.TestSets OR.TestSets.Read OR.TestSets.Write OR.TestSetSchedules OR.TestSetSchedules.Read OR.TestSetSchedules.Write OR.Users OR.Users.Read OR.Users.Write OR.Webhooks OR.Webhooks.Read OR.Webhooks.Write" -accountName ${{env.ORCH_ACC_NAME}} -folder_organization_unit ${{ env.FOLDER_ORG_UNIT }} -machine ${{ env.MACHINE }} -robots ${{ env.ROBOT }} -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }} -timeout ${{ env.TIMEOUT_SEC }}
+            $appSecret = $env:APP_SECRET
+            & "${{ github.workspace }}\scripts\UiPathJobRun.ps1" "${{ env.PROJECT_NAME }}" "${{ env.ORCH_URL }}" "${{ env.ORCH_TENANT }}" -accountForApp "${{ env.ORCH_ACC_NAME }}" -applicationId "ab993c89-3b70-419c-8bb5-ee284b61b32d" -applicationSecret $appSecret -applicationScope "OR.Administration OR.Administration.Read OR.Administration.Write OR.Analytics OR.Analytics.Read OR.Analytics.Write OR.Assets OR.Assets.Read OR.Assets.Write OR.Audit OR.Audit.Read OR.Audit.Write OR.BackgroundTasks OR.BackgroundTasks.Read OR.BackgroundTasks.Write OR.Execution OR.Execution.Read OR.Execution.Write OR.Folders OR.Folders.Read OR.Folders.Write OR.Hypervisor OR.Hypervisor.Read OR.Hypervisor.Write OR.Jobs OR.Jobs.Read OR.Jobs.Write OR.License OR.License.Read OR.License.Write OR.Machines OR.Machines.Read OR.Machines.Write OR.ML OR.ML.Read OR.ML.Write OR.Monitoring OR.Monitoring.Read OR.Monitoring.Write OR.Queues OR.Queues.Read OR.Queues.Write OR.Robots OR.Robots.Read OR.Robots.Write OR.Settings OR.Settings.Read OR.Settings.Write OR.Tasks OR.Tasks.Read OR.Tasks.Write OR.TestDataQueues OR.TestDataQueues.Read OR.TestDataQueues.Write OR.TestSetExecutions OR.TestSetExecutions.Read OR.TestSetExecutions.Write OR.TestSets OR.TestSets.Read OR.TestSets.Write OR.TestSetSchedules OR.TestSetSchedules.Read OR.TestSetSchedules.Write OR.Users OR.Users.Read OR.Users.Write OR.Webhooks OR.Webhooks.Read OR.Webhooks.Write" -folder_organization_unit "${{ env.FOLDER_ORG_UNIT }}" -machine "${{ env.MACHINE }}" -robots "${{ env.ROBOT }}" -uipathCliFilePath "${{ env.UIPATH_CLI_PATH }}" -timeout "${{ env.TIMEOUT_SEC }}"
 
   publish-uipath-nuget-package:
     needs: [run-uipath-nuget-package, config]
     if: needs.config.outputs.deploy == 'Yes'
     runs-on: self-hosted
     steps: 
+      - name: Check out repository code
+        uses: actions/checkout@v4
       - name: Download UiPath Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -166,4 +174,4 @@ jobs:
           }
       - name: Publish Nuget Package to DEV
         shell: powershell
-        run: ${{ github.workspace }}\scripts\UiPathDeploy.ps1 ${{ github.workspace }}\package ${{env.ORCH_URL}} ${{env.ORCH_TENANT}} -UserKey ${{env.ORCH_USER_KEY}} -account_name ${{env.ORCH_ACC_NAME}} -folder_organization_unit ${{ env.FOLDER_DEPLOY_UNIT }} -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }}
+        run: & "${{ github.workspace }}\scripts\UiPathDeploy.ps1" "${{ github.workspace }}\package" "${{ env.ORCH_URL }}" "${{ env.ORCH_TENANT }}" -UserKey "${{ env.ORCH_USER_KEY }}" -account_name "${{ env.ORCH_ACC_NAME }}" -folder_organization_unit "${{ env.FOLDER_DEPLOY_UNIT }}" -uipathCliFilePath "${{ env.UIPATH_CLI_PATH }}"
