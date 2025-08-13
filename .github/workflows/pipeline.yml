@@ -7,15 +7,15 @@ on:
     paths:
       - 'Configue-CICD.txt'
 
-# Here the environment variable is declared in workflow levels 
 env: 
-  # Replace with your Orchestrator Values 
   PROJECT_FOLDER: ${{ github.action_path }}
   ORCH_URL: ${{ secrets.UIPATH_ORCH_URL }}
   ORCH_TENANT: ${{ secrets.UIPATH_TENANT_ID }}
   ORCH_CLIENT_ID: ${{ secrets.UIPATH_CLIENT_ID }}
-  ORCH_USER_KEY: ${{ secrets.UIPATH_USER_KEY }}
-  ORCH_ACC_NAME: ${{ secrets.UIPATH_ACCOUNT_ID }}
+  ORCH_APP_ID: ${{ secrets.UIPATH_APP_ID }}
+  ORCH_APP_SECRET: ${{ secrets.UIPATH_APP_SECRET }}
+  ORCH_APP_SCOPE: ${{ secrets.UIPATH_APP_SCOPE }}
+  ORCH_ACC_NAME: ${{ secrets.UIPATH_ACCOUNT_NAME }}
 
 jobs:
   print-details:
@@ -32,138 +32,277 @@ jobs:
           Write-Host "GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE"
           Write-Host "GITHUB_SHA: $env:GITHUB_SHA"
           Write-Host "GITHUB_REF: $env:GITHUB_REF"
+
   cleaner:
     runs-on: self-hosted
+    needs: [print-details]
     steps:
-      - name: Runner workspace path
+      - name: Enhanced workspace cleanup for self-hosted runner
         shell: pwsh
         run: |
-          echo "Cleaning up previous run"
-          Remove-Item -Path "${{ github.workspace }}" -Recurse -Force -ErrorAction SilentlyContinue
+          Write-Host "Enhanced workspace cleanup for self-hosted runner"
+          $workspacePath = "${{ github.workspace }}"
+          Write-Host "Workspace path: $workspacePath"
+          
+          if (Test-Path $workspacePath) {
+            try {
+              Get-ChildItem -Path $workspacePath -Recurse -Force | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+              Write-Host "✅ Workspace cleanup completed"
+            }
+            catch {
+              Write-Host "⚠️ Workspace cleanup had issues: $($_.Exception.Message)"
+            }
+          }
+          
+          if (-not (Test-Path $workspacePath)) {
+            New-Item -Path $workspacePath -ItemType Directory -Force | Out-Null
+            Write-Host "✓ Created fresh workspace directory"
+          }
 
   config:
     runs-on: self-hosted
+    needs: [cleaner]
     outputs:
       build: ${{ steps.get_build.outputs.build }}
       run: ${{ steps.get_run.outputs.run }}
-      deploy: ${{ steps.get_deploy.outputs.deploy }}
+      environment: ${{ steps.get_environment.outputs.environment }}
+      project_name: ${{ steps.get_project_name.outputs.project_name }}
+      robot: ${{ steps.get_robot.outputs.robot }}
+      machine: ${{ steps.get_machine.outputs.machine }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+          force: true
+          set-safe-directory: true
+          lfs: false
+      
+      - name: Verify config file exists
+        shell: pwsh
+        run: |
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          Write-Host "Checking for config file at: $configFile"
+          
+          if (Test-Path $configFile) {
+            Write-Host "✅ Config file found!"
+            Write-Host "Config file contents:"
+            Get-Content $configFile | ForEach-Object { Write-Host "  '$_'" }
+          } else {
+            Write-Host "❌ Config file NOT found!"
+            Write-Host "Available files:"
+            Get-ChildItem -Path "${{ github.workspace }}" -Recurse -File | ForEach-Object { 
+              Write-Host "  $($_.FullName)" 
+            }
+            exit 1
+          }
+      
       - name: Get BUILD value from Configure-CICD.txt
         id: get_build
         shell: pwsh
         run: |
-          $build = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^BUILD[ ]*-[ ]*(.+)$' }) -replace '^BUILD[ ]*-[ ]*',''
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          $build = (Get-Content $configFile | Where-Object { $_ -match '^BUILD[ ]*-[ ]*(.+)$' }) -replace '^BUILD[ ]*-[ ]*',''
+          $build = $build.Trim()
+          
+          # Normalize Yes/No to true/false
+          if ($build -eq "Yes") { $build = "true" }
+          if ($build -eq "No") { $build = "false" }
+          
+          Write-Host "BUILD value: '$build'"
           echo "build=$build" >> $env:GITHUB_OUTPUT
+      
       - name: Get RUN value from Configure-CICD.txt
         id: get_run
         shell: pwsh
         run: |
-          $run = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^RUN[ ]*-[ ]*(.+)$' }) -replace '^RUN[ ]*-[ ]*',''
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          $run = (Get-Content $configFile | Where-Object { $_ -match '^RUN[ ]*-[ ]*(.+)$' }) -replace '^RUN[ ]*-[ ]*',''
+          $run = $run.Trim()
+          
+          # Normalize Yes/No to true/false
+          if ($run -eq "Yes") { $run = "true" }
+          if ($run -eq "No") { $run = "false" }
+          
+          Write-Host "RUN value: '$run'"
           echo "run=$run" >> $env:GITHUB_OUTPUT
-      - name: Get DEPLOY value from Configure-CICD.txt
-        id: get_deploy
+      
+      - name: Get ENVIRONMENT value from Configure-CICD.txt
+        id: get_environment
         shell: pwsh
         run: |
-          $deploy = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^DEPLOY[ ]*-[ ]*(.+)$' }) -replace '^DEPLOY[ ]*-[ ]*',''
-          echo "deploy=$deploy" >> $env:GITHUB_OUTPUT
-      - name: Write ENVIRONMENT value to file
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          $envValue = (Get-Content $configFile | Where-Object { $_ -match '^[ ]*ENVIRONMENT[ ]*-[ ]*(.+)$' }) -replace '^[ ]*ENVIRONMENT[ ]*-[ ]*',''
+          $envValue = $envValue.Trim()
+          Write-Host "ENVIRONMENT value: '$envValue'"
+          echo "environment=$envValue" >> $env:GITHUB_OUTPUT
+      
+      - name: Get PROJECT_NAME value from Configure-CICD.txt
+        id: get_project_name
         shell: pwsh
         run: |
-          $envValue = (Get-Content "${{ github.workspace }}/Configue-CICD.txt" | Where-Object { $_ -match '^[ ]*ENVIRONMENT[ ]*-[ ]*(.+)$' }) -replace '^[ ]*ENVIRONMENT[ ]*-[ ]*',''
-          $outputPath = 'C:\Automation Team\CICD'
-          if (!(Test-Path $outputPath)) { New-Item -Path $outputPath -ItemType Directory -Force }
-          $envFile = Join-Path $outputPath 'environment.txt'
-          Remove-Item -Path $envFile -Force -ErrorAction SilentlyContinue
-          Set-Content -Path $envFile -Value $envValue
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          $projectName = (Get-Content $configFile | Where-Object { $_ -match '^[ ]*PROJECT_NAME[ ]*-[ ]*(.+)$' }) -replace '^[ ]*PROJECT_NAME[ ]*-[ ]*',''
+          $projectName = $projectName.Trim()
+          Write-Host "PROJECT_NAME value: '$projectName'"
+          echo "project_name=$projectName" >> $env:GITHUB_OUTPUT
 
-  build-uipath-nuget-package:
-    needs: [cleaner, config]
-    if: needs.config.outputs.build == 'Yes'
+      - name: Get ROBOT value from Configure-CICD.txt
+        id: get_robot
+        shell: pwsh
+        run: |
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          $robot = (Get-Content $configFile | Where-Object { $_ -match '^[ ]*ROBOT[ ]*-[ ]*(.+)$' }) -replace '^[ ]*ROBOT[ ]*-[ ]*',''
+          $robot = $robot.Trim()
+          Write-Host "ROBOT value: '$robot'"
+          echo "robot=$robot" >> $env:GITHUB_OUTPUT
+
+      - name: Get MACHINE value from Configure-CICD.txt
+        id: get_machine
+        shell: pwsh
+        run: |
+          $configFile = "${{ github.workspace }}/Configue-CICD.txt"
+          $machine = (Get-Content $configFile | Where-Object { $_ -match '^[ ]*MACHINE[ ]*-[ ]*(.+)$' }) -replace '^[ ]*MACHINE[ ]*-[ ]*',''
+          $machine = $machine.Trim()
+          Write-Host "MACHINE value: '$machine'"
+          echo "machine=$machine" >> $env:GITHUB_OUTPUT
+
+  debug:
     runs-on: self-hosted
-    steps: 
+    needs: [config]
+    if: always()
+    steps:
+      - name: Debug config outputs
+        shell: pwsh
+        run: |
+          Write-Host "=== CONFIG DEBUG ==="
+          Write-Host "config.result: '${{ needs.config.result }}'"
+          Write-Host "config.outputs.run: '${{ needs.config.outputs.run }}'"
+          Write-Host "config.outputs.build: '${{ needs.config.outputs.build }}'"
+          Write-Host "config.outputs.environment: '${{ needs.config.outputs.environment }}'"
+          Write-Host "config.outputs.project_name: '${{ needs.config.outputs.project_name }}'"
+          Write-Host "config.outputs.robot: '${{ needs.config.outputs.robot }}'"
+          Write-Host "config.outputs.machine: '${{ needs.config.outputs.machine }}'"
+          Write-Host "===================="
+          
+          Write-Host "=== CONDITION EVALUATION ==="
+          $configSuccess = '${{ needs.config.result }}' -eq 'success'
+          $runTrue = '${{ needs.config.outputs.run }}' -eq 'true'
+          Write-Host "config.result == 'success': $configSuccess"
+          Write-Host "config.outputs.run == 'true': $runTrue"
+          Write-Host "Combined condition result: $($configSuccess -and $runTrue)"
+          Write-Host "=========================="
+
+  run:
+    runs-on: self-hosted
+    needs: [config]
+    if: needs.config.result == 'success' && needs.config.outputs.run == 'true'
+    steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Load config values from Configue-CICD.txt
-        id: load_config
-        shell: pwsh
-        run: |
-          $config = Get-Content "${{ github.workspace }}\Configue-CICD.txt"
-          foreach ($line in $config) {
-            if ($line -match '^[ ]*PROJECT_NAME[ ]*-[ ]*(.+)$') { echo "PROJECT_NAME=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*BRANCH[ ]*-[ ]*(.+)$') { echo "BRANCH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*UIPATH_CLI_PATH[ ]*-[ ]*(.+)$') { echo "UIPATH_CLI_PATH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*FOLDER_ORGANIZATION_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_ORG_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*FOLDER_DEPLOY_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_DEPLOY_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*MACHINE[ ]*-[ ]*(.+)$') { echo "MACHINE=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*ROBOT[ ]*-[ ]*(.+)$') { echo "ROBOT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*TIMEOUT_SEC[ ]*-[ ]*(.+)$') { echo "TIMEOUT_SEC=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-          }
-      - name: Print loaded config values
-        shell: pwsh
-        run: |
-          Get-ChildItem Env: | Where-Object { $_.Name -in @('PROJECT_NAME','BRANCH','UIPATH_CLI_PATH','FOLDER_ORG_UNIT','FOLDER_DEPLOY_UNIT','MACHINE','ROBOT','TIMEOUT_SEC') } | ForEach-Object { Write-Host "$($_.Name)=$($_.Value)" }
-      - name: Build Nuget Package
-        shell: powershell
-        run: ${{ github.workspace }}\scripts\UiPathPack.ps1 ${{ github.workspace }}\project.json -destination_folder ${{ github.workspace }}\package -autoVersion -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }}
-      - name: Upload UiPath Artifacts
-        uses: actions/upload-artifact@v4
         with:
-          name: Artifacts
-          path: |
-           package/*.*
-           scripts/*.ps1
-                    
-  run-uipath-nuget-package:
-      needs: [config]
-      if: needs.config.outputs.run == 'Yes'
-      runs-on: self-hosted
-      steps:
-        - name: Load config values from Configue-CICD.txt
-          id: load_config
-          shell: pwsh
-          run: |
-            $config = Get-Content "${{ github.workspace }}\Configue-CICD.txt"
-            foreach ($line in $config) {
-              if ($line -match '^[ ]*PROJECT_NAME[ ]*-[ ]*(.+)$') { echo "PROJECT_NAME=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*BRANCH[ ]*-[ ]*(.+)$') { echo "BRANCH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*UIPATH_CLI_PATH[ ]*-[ ]*(.+)$') { echo "UIPATH_CLI_PATH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*FOLDER_ORGANIZATION_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_ORG_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*FOLDER_DEPLOY_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_DEPLOY_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*MACHINE[ ]*-[ ]*(.+)$') { echo "MACHINE=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*ROBOT[ ]*-[ ]*(.+)$') { echo "ROBOT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-              if ($line -match '^[ ]*TIMEOUT_SEC[ ]*-[ ]*(.+)$') { echo "TIMEOUT_SEC=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+          fetch-depth: 0
+          clean: true
+          force: true
+          set-safe-directory: true
+          lfs: false
+      
+      - name: Debug External Application Authentication Values
+        shell: pwsh
+        run: |
+          Write-Host "Starting UiPath job run with External Application authentication"
+          Write-Host "PROJECT_NAME from config: ${{ needs.config.outputs.project_name }}"
+          Write-Host "ROBOT from config: ${{ needs.config.outputs.robot }}"
+          Write-Host "MACHINE from config: ${{ needs.config.outputs.machine }}"
+          Write-Host "=== DEBUG: External Application Authentication Values ==="
+          Write-Host "ORCH_URL: $env:ORCH_URL"
+          Write-Host "ORCH_TENANT: $env:ORCH_TENANT"
+          Write-Host "ORCH_ACC_NAME: $env:ORCH_ACC_NAME"
+          if ($env:ORCH_APP_ID) {
+            Write-Host "ORCH_APP_ID: $($env:ORCH_APP_ID.Substring(0,8))***"
+          }
+          if ($env:ORCH_APP_SECRET) {
+            Write-Host "ORCH_APP_SECRET: SET (length: $($env:ORCH_APP_SECRET.Length) characters)"
+          }
+          Write-Host "ORCH_APP_SCOPE: $env:ORCH_APP_SCOPE"
+          Write-Host "================================================"
+      
+      - name: Run UiPath Job via API
+        shell: pwsh
+        run: |
+          Write-Host "Job run parameters:"
+          Write-Host "  Process Name: ${{ needs.config.outputs.project_name }}"
+          Write-Host "  Orchestrator URL: $env:ORCH_URL"
+          Write-Host "  Tenant: $env:ORCH_TENANT"
+          Write-Host "  Account Name: $env:ORCH_ACC_NAME"
+          Write-Host "  Folder: Automation"
+          Write-Host "  Machine: ${{ needs.config.outputs.machine }}"
+          Write-Host "  Robot: ${{ needs.config.outputs.robot }}"
+          Write-Host "  Timeout: 15000"
+          
+          $scriptPath = "${{ github.workspace }}\scripts\UiPathJobRun.ps1"
+          
+          if (-not (Test-Path $scriptPath)) {
+            Write-Host "❌ UiPathJobRun.ps1 script not found at: $scriptPath" -ForegroundColor Red
+            Write-Host "Available files in scripts directory:"
+            Get-ChildItem "${{ github.workspace }}\scripts" -ErrorAction SilentlyContinue | ForEach-Object { 
+              Write-Host "  - $($_.Name)"
             }
-        - name: Print loaded config values
-          shell: pwsh
-          run: |
-            Get-ChildItem Env: | Where-Object { $_.Name -in @('PROJECT_NAME','BRANCH','UIPATH_CLI_PATH','FOLDER_ORG_UNIT','FOLDER_DEPLOY_UNIT','MACHINE','ROBOT','TIMEOUT_SEC') } | ForEach-Object { Write-Host "$($_.Name)=$($_.Value)" }
-        - name: run Package
-          shell: powershell
-          run: |
-            echo "PROJECT_NAME from config: ${{ env.PROJECT_NAME }}"
-            ${{ github.workspace }}\scripts\UiPathJobRun.ps1 ${{ env.PROJECT_NAME }} ${{env.ORCH_URL}} ${{env.ORCH_TENANT}} -accountForApp ${{env.ORCH_ACC_NAME}} -applicationId ab993c89-3b70-419c-8bb5-ee284b61b32d -applicationSecret 5#3hH9ZT)*gI!RcM5iw6_OZjPg@(G5ttHol6xP0STt8)Fz%oYmwh_HIx3qThAsLt -applicationScope "OR.Administration OR.Administration.Read OR.Administration.Write OR.Analytics OR.Analytics.Read OR.Analytics.Write OR.Assets OR.Assets.Read OR.Assets.Write OR.Audit OR.Audit.Read OR.Audit.Write OR.BackgroundTasks OR.BackgroundTasks.Read OR.BackgroundTasks.Write OR.Execution OR.Execution.Read OR.Execution.Write OR.Folders OR.Folders.Read OR.Folders.Write OR.Hypervisor OR.Hypervisor.Read OR.Hypervisor.Write OR.Jobs OR.Jobs.Read OR.Jobs.Write OR.License OR.License.Read OR.License.Write OR.Machines OR.Machines.Read OR.Machines.Write OR.ML OR.ML.Read OR.ML.Write OR.Monitoring OR.Monitoring.Read OR.Monitoring.Write OR.Queues OR.Queues.Read OR.Queues.Write OR.Robots OR.Robots.Read OR.Robots.Write OR.Settings OR.Settings.Read OR.Settings.Write OR.Tasks OR.Tasks.Read OR.Tasks.Write OR.TestDataQueues OR.TestDataQueues.Read OR.TestDataQueues.Write OR.TestSetExecutions OR.TestSetExecutions.Read OR.TestSetExecutions.Write OR.TestSets OR.TestSets.Read OR.TestSets.Write OR.TestSetSchedules OR.TestSetSchedules.Read OR.TestSetSchedules.Write OR.Users OR.Users.Read OR.Users.Write OR.Webhooks OR.Webhooks.Read OR.Webhooks.Write" -accountName ${{env.ORCH_ACC_NAME}} -folder_organization_unit ${{ env.FOLDER_ORG_UNIT }} -machine ${{ env.MACHINE }} -robots ${{ env.ROBOT }} -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }} -timeout ${{ env.TIMEOUT_SEC }}
+            exit 1
+          }
+          
+          try {
+            Write-Host "🚀 Executing UiPath job run script..."
+            
+            & $scriptPath `
+              -processName "${{ needs.config.outputs.project_name }}" `
+              -uriOrch "$env:ORCH_URL" `
+              -tenantlName "$env:ORCH_TENANT" `
+              -accountForApp "$env:ORCH_ACC_NAME" `
+              -applicationId "$env:ORCH_APP_ID" `
+              -applicationSecret "$env:ORCH_APP_SECRET" `
+              -applicationScope "$env:ORCH_APP_SCOPE" `
+              -folder_organization_unit "Automation" `
+              -robots "${{ needs.config.outputs.robot }}" `
+              -machine "${{ needs.config.outputs.machine }}" `
+              -timeout "15000" `
+              -wait "true" `
+              -fail_when_job_fails "true"
+            
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ UiPath job completed successfully!" -ForegroundColor Green
+            } else {
+              Write-Host "❌ UiPath job failed with exit code: $LASTEXITCODE" -ForegroundColor Red
+              exit $LASTEXITCODE
+            }
+          }
+          catch {
+            Write-Host "❌ Error executing UiPath job: $($_.Exception.Message)" -ForegroundColor Red
+            exit 1
+          }
 
-  publish-uipath-nuget-package:
-    needs: [run-uipath-nuget-package, config]
-    if: needs.config.outputs.deploy == 'Yes'
+  summary:
     runs-on: self-hosted
-    steps: 
-      - name: Download UiPath Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: Artifacts
-      - name: Load config values from Configue-CICD.txt
-        id: load_config
+    needs: [config, debug, run]
+    if: always()
+    steps:
+      - name: Workflow Summary
         shell: pwsh
         run: |
-          $config = Get-Content "${{ github.workspace }}\Configue-CICD.txt"
-          foreach ($line in $config) {
-            if ($line -match '^[ ]*UIPATH_CLI_PATH[ ]*-[ ]*(.+)$') { echo "UIPATH_CLI_PATH=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*FOLDER_ORGANIZATION_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_ORG_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
-            if ($line -match '^[ ]*FOLDER_DEPLOY_UNIT[ ]*-[ ]*(.+)$') { echo "FOLDER_DEPLOY_UNIT=$($Matches[1].Trim())" >> $env:GITHUB_ENV }
+          Write-Host "📊 WORKFLOW EXECUTION SUMMARY"
+          Write-Host "================================"
+          Write-Host "Job Results:"
+          Write-Host "  - Config: ${{ needs.config.result }}"
+          Write-Host "  - Debug: ${{ needs.debug.result }}"
+          Write-Host "  - Run: ${{ needs.run.result }}"
+          Write-Host ""
+          
+          if ("${{ needs.run.result }}" -eq "success") {
+            Write-Host "🎉 WORKFLOW COMPLETED SUCCESSFULLY!" -ForegroundColor Green
+          } elseif ("${{ needs.run.result }}" -eq "skipped") {
+            Write-Host "⚠️ RUN JOB WAS SKIPPED!" -ForegroundColor Yellow
+            Write-Host "Check the debug job output above to see why."
+          } else {
+            Write-Host "❌ WORKFLOW COMPLETED WITH ERRORS!" -ForegroundColor Red
           }
-      - name: Publish Nuget Package to DEV
-        shell: powershell
-        run: ${{ github.workspace }}\scripts\UiPathDeploy.ps1 ${{ github.workspace }}\package ${{env.ORCH_URL}} ${{env.ORCH_TENANT}} -UserKey ${{env.ORCH_USER_KEY}} -account_name ${{env.ORCH_ACC_NAME}} -folder_organization_unit ${{ env.FOLDER_DEPLOY_UNIT }} -uipathCliFilePath ${{ env.UIPATH_CLI_PATH }}
