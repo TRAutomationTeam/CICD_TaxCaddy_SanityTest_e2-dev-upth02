@@ -8,6 +8,6 @@ FOLDER_DEPLOY_UNIT - Unattended
 MACHINE - e2-dev-upth02
 ROBOT - robot2-unattended
 TIMEOUT_SEC - 15000
-BUILD - No
-RUN - Yes
-DEPLOY - No
+BUILD - false
+RUN - true
+DEPLOY - false
