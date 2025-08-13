@@ -1,365 +1,424 @@
 <#
 .SYNOPSIS 
-    Run UiPath Orchestrator Job.
-
-.DESCRIPTION 
-    This script is to run orchestrator job.
-
-.PARAMETER processName 
-    orchestrator process name to run.
-
-.PARAMETER uriOrch 
-    The URL of Orchestrator.
-
-.PARAMETER tenantlName 
-    The tenant name
-
-.PARAMETER accountForApp 
-    The Orchestrator CloudRPA account name. Must be used together with id, secret and scope(s) for external application.
-
-.PARAMETER applicationId 
-    The external application id. Must be used together with account, secret and scope(s) for external application.
-
-.PARAMETER applicationSecret 
-    The external application secret. Must be used together with account, id and scope(s) for external application.
-
-.PARAMETER applicationScope 
-    The space-separated list of application scopes. Must be used together with account, id and secret for external application.
-
-.PARAMETER orchestrator_user
-    On-premises Orchestrator admin user name who has a Role of Create Package.
-
-.PARAMETER orchestrator_pass
-    The password of the on-premises Orchestrator admin user.
-
-.PARAMETER userKey
-    User key for Cloud Platform Orchestrator
-
-.PARAMETER accountName
-    Account logical name for Cloud Platform Orchestrator
-
-.PARAMETER input_path
-    The full path to a JSON input file. Only required if the entry-point workflow has input parameters.
-
-.PARAMETER jobscount
-    The number of job runs. (default 1)
-
-.PARAMETER result_path
-    The full path to a JSON file or a folder where the result json file will be created.
-
-.PARAMETER priority
-    The priority of job runs. One of the following values: Low, Normal, High. (default Normal)
-
-.PARAMETER robots
-    The comma-separated list of specific robot names.
-
-.PARAMETER folder_organization_unit
-    The Orchestrator folder (organization unit).
-
-.PARAMETER user
-    The name of the user. This should be a machine user, not an orchestrator user. For local users, the format should be MachineName\UserName
-
-.PARAMETER language
-    The orchestrator language.
-
-.PARAMETER machine
-    The name of the machine.
-
-.PARAMETER timeout
-    The timeout for job executions in seconds. (default 1800)
-
-.PARAMETER fail_when_job_fails
-    The command fails when at least one job fails. (default true)
-
-.PARAMETER wait
-    The command waits for job runs completion. (default true)
-
-.PARAMETER job_type
-    The type of the job that will run. Values supported for this command: Unattended, NonProduction. For classic folders do not specify this argument
-
-.PARAMETER disableTelemetry
-    Disable telemetry data.
-
-.PARAMETER uipathCliFilePath
-    if not provided, the script will auto download the cli from uipath public feed. the script was testing on version 22.10.8432.18709. if provided, it is recommended to have cli version 22.10.8432.18709 
-
-.EXAMPLE
-SYNTAX:
-    .\UiPathJobRun.ps1 <process_name> <orchestrator_url> <orchestrator_tenant> [-input_path <input_path>] [-jobscount <jobscount>] [-result_path <result_path>] [-priority <priority>] [-robots <robots>] 
-    [-fail_when_job_fails <do_not_fail_when_job_fails>] [-timeout <timeout>] [-wait <do_not_wait>] [-orchestrator_user <orchestrator_user> -orchestrator_pass <orchestrator_pass>] [-userKey <auth_token> -accountName <account_name>] 
-    [-accountForApp <account_for_app> -applicationId <application_id> -applicationSecret <application_secret> -applicationScope <applicationScope>] [-folder_organization_unit <folder_organization_unit>] [-language <language>] [-user <robotUser>]
-    [-machine <robotMachine>] [-job_type <Unattended, NonProduction>]
-
-  Examples:
-    
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -orchestrator_user admin -orchestrator_pass 123456
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -orchestrator_user admin -orchestrator_pass 123456 -orchestrator_pass -priority Low
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -orchestrator_user admin -orchestrator_pass 123456 -orchestrator_pass -priority Normal -folder_organization_unit MyFolder
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -orchestrator_user admin -orchestrator_pass 123456 -orchestrator_pass -priority High -folder_organization_unit MyFolder
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -userKey a7da29a2c93a717110a82 -accountName myAccount -fail_when_job_fails false -timeout 0
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -userKey a7da29a2c93a717110a82 -accountName myAccount -orchestrator_pass -priority High -jobscount 3 -wait false -machine ROBOTMACHINE
-    .\UiPathJobRun.ps1 "ProcessName" "https://cloud.uipath.com/" default -userKey a7da29a2c93a717110a82 -accountName myAccount -orchestrator_pass -priority Low -robots robotName -result_path C:\Temp
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -userKey a7da29a2c93a717110a82 -accountName myAccount -robots robotName -result_path C:\Temp\status.json
-    .\UiPathJobRun.ps1 "ProcessName" "https://uipath-orchestrator.myorg.com" default -accountForApp accountForExternalApp -applicationId myExternalAppId -applicationSecret myExternalAppSecret -applicationScope "OR.Folders.Read OR.Settings.Read" -robots robotName -result_path C:\Temp\status.json
- 
+    Run UiPath Orchestrator Job via API with External Application authentication.
+    UPDATED: Automatically finds ReleaseKey GUID via API call and supports machine/robot targeting
 #>
 Param (
-
-    #Required
-    [Parameter(Mandatory=$true, Position = 0)]
-    [string] $processName = "", #Process Name (pos. 0)           Required.
-    [Parameter(Mandatory=$true, Position = 1)]
-    [string] $uriOrch = "", #Orchestrator URL (pos. 1)       Required. The URL of the Orchestrator instance.
-    [Parameter(Mandatory=$true, Position = 2)]
-    [string] $tenantlName = "", #Orchestrator Tenant (pos. 2)    Required. The tenant of the Orchestrator instance.
-
-    #External Apps (Option 1)
-    [string] $accountForApp = "", #The Orchestrator CloudRPA account name. Must be used together with id, secret and scope(s) for external application.
-    [string] $applicationId = "", #Required. The external application id. Must be used together with account, secret and scope(s) for external application.
-    [string] $applicationSecret = "", #Required. The external application secret. Must be used together with account, id and scope(s) for external application.
-    [string] $applicationScope = "", #Required. The space-separated list of application scopes. Must be used together with account, id and secret for external application.
-
-    #API Access - (Option 2)
-    [string] $accountName = "", #Required. The Orchestrator CloudRPA account name. Must be used together with the refresh token and client id.
-    [string] $userKey = "", #Required. The Orchestrator OAuth2 refresh token used for authentication. Must be used together with the account name and client id.
-    
-    #On prem UserName & Password - (Option 3) 
-    [string] $orchestrator_user = "", #Required. The Orchestrator username used for authentication. Must be used together with the password.
-    [string] $orchestrator_pass = "", #Required. The Orchestrator password used for authentication. Must be used together with the username.
-	
-    [string] $input_path = "", #The full path to a JSON input file. Only required if the entry-point workflow has input parameters.
-    [string] $jobscount = "", #The number of job runs. (default 1)
-    [string] $result_path = "", #The full path to a JSON file or a folder where the result json file will be created.
-    [string] $priority = "", #The priority of job runs. One of the following values: Low, Normal, High. (default Normal)
-    [string] $robots = "", #The comma-separated list of specific robot names.
-    [string] $folder_organization_unit = "", #The Orchestrator folder (organization unit).
-    [string] $language = "", #The orchestrator language.  
-    [string] $user = "", #The name of the user. This should be a machine user, not an orchestrator user. For local users, the format should be MachineName\UserName
-    [string] $machine = "", #The name of the machine.
-    [string] $timeout = "", #The timeout for job executions in seconds. (default 1800)
-    [string] $fail_when_job_fails = "", #The command fails when at least one job fails. (default true)
-    [string] $wait = "", #The command waits for job runs completion. (default true)
-    [string] $job_type = "", #The type of the job that will run. Values supported for this command: Unattended, NonProduction. For classic folders do not specify this argument
-    [string] $disableTelemetry = "", #Disable telemetry data.   
-    [string] $uipathCliFilePath = "" , #if not provided, the script will auto download the cli from uipath public feed. the script was testing on version 23.10.8753.32995.
-    [string] $SpecificCLIVersion = "", #CLI version to auto download if uipathCliFilePath not provided
-    [Parameter(ValueFromRemainingArguments = $true)]
-    $remainingArgs
-
+    [Parameter(Mandatory=$true)]
+    [string] $processName = "",
+    [Parameter(Mandatory=$true)]
+    [string] $uriOrch = "",
+    [Parameter(Mandatory=$true)]
+    [string] $tenantlName = "",
+    [Parameter(Mandatory=$true)]
+    [string] $accountForApp = "",
+    [Parameter(Mandatory=$true)]
+    [string] $applicationId = "",
+    [Parameter(Mandatory=$true)]
+    [string] $applicationSecret = "",
+    [Parameter(Mandatory=$true)]
+    [string] $applicationScope = "",
+    [string] $input_path = "",
+    [string] $jobscount = "1",
+    [string] $result_path = "",
+    [string] $priority = "Normal",
+    [string] $robots = "",
+    [string] $folder_organization_unit = "",
+    [string] $machine = "",
+    [string] $timeout = "1800",
+    [string] $fail_when_job_fails = "true",
+    [string] $wait = "true",
+    [string] $job_type = "Unattended"
 )
-function WriteLog
-{
-	Param ($message, [switch] $err)
-	
-	$now = Get-Date -Format "G"
-	$line = "$now`t$message"
-	$line | Add-Content $debugLog -Encoding UTF8
-	if ($err)
-	{
-		Write-Host $line -ForegroundColor red
-	} else {
-		Write-Host $line
-	}
-}
-#Running Path
-$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-#log file
-$debugLog = "$scriptPath\orchestrator-job-run.log"
 
-#Validate provided cli folder (if any)
-if($uipathCliFilePath -ne ""){
-    $uipathCLI = "$uipathCliFilePath"
-    if (-not(Test-Path -Path $uipathCLI -PathType Leaf)) {
-        WriteLog "UiPath cli file path provided does not exist in the provided path $uipathCliFilePath.`r`nDo not provide uipathCliFilePath paramter if you want the script to auto download the cli from UiPath Public feed"
+function WriteLog {
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$Message,
+        [switch]$err
+    )
+    $timestamp = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') "
+    $logEntry = "$timestamp$Message"
+    if ($err) {
+        Write-Error $logEntry
+    } else {
+        Write-Host $logEntry
+    }
+}
+
+WriteLog "🚀 Starting UiPath Orchestrator Job via API..."
+WriteLog "Script Parameters:"
+WriteLog "  - Process Name: $processName"
+WriteLog "  - Orchestrator URL: $uriOrch"
+WriteLog "  - Tenant: $tenantlName"
+WriteLog "  - Account: $accountForApp"
+WriteLog "  - Folder: $folder_organization_unit"
+WriteLog "  - Robot: $robots"
+WriteLog "  - Machine: $machine"
+WriteLog "  - Timeout: $timeout"
+
+# Define URLs
+$orchestratorApiBase = "$uriOrch/orchestrator_"
+$identityServerRoot = if ($uriOrch -match "^(https?:\/\/[^\/]+)\/") { $Matches[1] } else { $uriOrch }
+
+WriteLog "Orchestrator API Base: $orchestratorApiBase"
+WriteLog "Identity Server Root: $identityServerRoot"
+
+# --- 1. Get Access Token ---
+WriteLog "🔐 Getting access token..."
+$identityUrl = "$identityServerRoot/identity_/connect/token"
+$bodyParams = @{
+    "grant_type"    = "client_credentials"
+    "client_id"     = $applicationId
+    "client_secret" = $applicationSecret
+    "scope"         = $applicationScope
+}
+
+try {
+    $response = Invoke-RestMethod -Uri $identityUrl -Method Post -ContentType "application/x-www-form-urlencoded" -Body $bodyParams -ErrorAction Stop
+    if ($response.access_token) {
+        WriteLog "✅ Successfully retrieved access token"
+        $accessToken = $response.access_token
+    } else {
+        WriteLog "❌ Failed to retrieve access token" -err
         exit 1
     }
-}else{
-    #Verifying UiPath CLI installation
-
-    if($SpecificCLIVersion -ne ""){
-        $cliVersion = $SpecificCLIVersion;
-    }
-    else{
-        $cliVersion = "23.10.8753.32995"; #CLI Version (Script was tested on this latest version at the time)
-    }
-
-    $uipathCLI = "$scriptPath\uipathcli\$cliVersion\tools\uipcli.exe"
-    if (-not(Test-Path -Path $uipathCLI -PathType Leaf)) {
-        WriteLog "UiPath CLI does not exist in this folder. Attempting to download it..."
-        try {
-            if (-not(Test-Path -Path "$scriptPath\uipathcli\$cliVersion" -PathType Leaf)){
-                New-Item -Path "$scriptPath\uipathcli\$cliVersion" -ItemType "directory" -Force | Out-Null
-            }
-            #Download UiPath CLI
-            #Invoke-WebRequest "https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.CLI/$cliVersion" -OutFile "$scriptPath\\uipathcli\\$cliVersion\\cli.zip";
-            Invoke-WebRequest "https://uipath.pkgs.visualstudio.com/Public.Feeds/_apis/packaging/feeds/1c781268-d43d-45ab-9dfc-0151a1c740b7/nuget/packages/UiPath.CLI.Windows/versions/$cliVersion/content" -OutFile "$scriptPath\\uipathcli\\$cliVersion\\cli.zip";
-            Expand-Archive -LiteralPath "$scriptPath\\uipathcli\\$cliVersion\\cli.zip" -DestinationPath "$scriptPath\\uipathcli\\$cliVersion";
-            WriteLog "UiPath CLI is downloaded and extracted in folder $scriptPath\uipathcli\\$cliVersion"
-            if (-not(Test-Path -Path $uipathCLI -PathType Leaf)) {
-                WriteLog "Unable to locate uipath cli after it is downloaded."
-                exit 1
-            }
-        }
-        catch {
-            WriteLog ("Error Occured : " + $_.Exception.Message) -err $_.Exception
-            exit 1
-        }
-        
-    }
-}
-WriteLog "-----------------------------------------------------------------------------"
-WriteLog "uipcli location :   $uipathCLI"
-#END Verifying UiPath CLI installation
-
-$ParamList = New-Object 'Collections.Generic.List[string]'
-
-if($processName -eq "" -or $uriOrch -eq "" -or $tenantlName -eq "")
-{
-    WriteLog "Fill the required paramters (processName, uriOrch, tenantlName)"
+} catch {
+    WriteLog "❌ Error getting access token: $($_.Exception.Message)" -err
     exit 1
 }
 
-if($accountForApp -eq "" -or $applicationId -eq "" -or $applicationSecret -eq "" -or $applicationScope -eq "")
-{
-    if($accountName -eq "" -or $userKey -eq "")
-    {
-        if($orchestrator_user -eq "" -or $orchestrator_pass -eq "")
-        {
-            WriteLog "Fill the required paramters (External App OAuth, API Access, or Username & Password)"
-            exit 1
+# Set up headers
+$headers = @{
+    "Authorization" = "Bearer $accessToken"
+    "X-UIPATH-TenantName" = $tenantlName
+    "X-UIPATH-AccountName" = $accountForApp
+    "Content-Type" = "application/json"
+}
+
+# --- 2. Get Folder ID ---
+try {
+    WriteLog "📁 Finding folder '$folder_organization_unit'..."
+    $foldersUri = "$orchestratorApiBase/odata/Folders"
+    $foldersResponse = Invoke-RestMethod -Uri $foldersUri -Method Get -Headers $headers -ErrorAction Stop
+    
+    $folder = $foldersResponse.value | Where-Object { $_.DisplayName -eq $folder_organization_unit }
+    if (-not $folder) {
+        WriteLog "❌ Folder '$folder_organization_unit' not found" -err
+        WriteLog "Available folders:" -err
+        $foldersResponse.value | ForEach-Object { WriteLog "  - $($_.DisplayName)" }
+        exit 1
+    }
+    
+    $folderId = $folder.Id
+    WriteLog "✅ Found folder ID: $folderId"
+    
+    # Add folder context to headers
+    $headers."X-UIPATH-OrganizationUnitId" = $folderId
+    
+} catch {
+    WriteLog "❌ Error accessing folders: $($_.Exception.Message)" -err
+    exit 1
+}
+
+# --- 3. Find ReleaseKey by Looking Up Process/Release ---
+WriteLog "🔍 Looking up ReleaseKey for process '$processName'..."
+
+$releaseKey = $null
+$foundProcess = $null
+
+# Try multiple endpoints to find the process
+$endpoints = @(
+    @{ Name = "Releases"; Uri = "$orchestratorApiBase/odata/Releases"; KeyField = "Key"; NameField = "Name"; ProcessField = "ProcessKey" },
+    @{ Name = "Processes"; Uri = "$orchestratorApiBase/odata/Processes"; KeyField = "Key"; NameField = "Name"; ProcessField = "Key" }
+)
+
+foreach ($endpoint in $endpoints) {
+    try {
+        WriteLog "Trying endpoint: $($endpoint.Name)"
+        $response = Invoke-RestMethod -Uri $endpoint.Uri -Method Get -Headers $headers -ErrorAction Stop
+        
+        if ($response.value) {
+            WriteLog "Found $($response.value.Count) items in $($endpoint.Name)"
+            
+            # Try to find exact match by name
+            $foundProcess = $response.value | Where-Object { 
+                $_."$($endpoint.NameField)" -eq $processName
+            }
+            
+            if ($foundProcess) {
+                $releaseKey = $foundProcess."$($endpoint.KeyField)"
+                WriteLog "✅ Found exact match in $($endpoint.Name)!"
+                WriteLog "✅ Process Name: '$($foundProcess."$($endpoint.NameField)")"
+                WriteLog "✅ ReleaseKey: '$releaseKey'"
+                break
+            } else {
+                WriteLog "⚠️ No exact match found in $($endpoint.Name)"
+            }
+        } else {
+            WriteLog "⚠️ No data returned from $($endpoint.Name)"
+        }
+    }
+    catch {
+        WriteLog "❌ Error accessing $($endpoint.Name): $($_.Exception.Message)"
+    }
+}
+
+# If we still haven't found it, try partial matching
+if (-not $releaseKey) {
+    WriteLog "🔍 Trying partial name matching..."
+    
+    foreach ($endpoint in $endpoints) {
+        try {
+            $response = Invoke-RestMethod -Uri $endpoint.Uri -Method Get -Headers $headers -ErrorAction SilentlyContinue
+            if ($response.value) {
+                # Try partial match (contains)
+                $foundProcess = $response.value | Where-Object { 
+                    $_."$($endpoint.NameField)" -like "*$processName*" -or $processName -like "*$($_."$($endpoint.NameField)")*"
+                }
+                
+                if ($foundProcess) {
+                    if ($foundProcess.Count -gt 1) {
+                        WriteLog "⚠️ Multiple partial matches found in $($endpoint.Name):"
+                        $foundProcess | ForEach-Object { 
+                            WriteLog "  - '$($_."$($endpoint.NameField)")' (Key: '$($_."$($endpoint.KeyField)")')" 
+                        }
+                        $foundProcess = $foundProcess[0]
+                        WriteLog "Using first match: '$($foundProcess."$($endpoint.NameField)")'"
+                    }
+                    
+                    $releaseKey = $foundProcess."$($endpoint.KeyField)"
+                    WriteLog "✅ Found partial match in $($endpoint.Name)!"
+                    WriteLog "✅ Process Name: '$($foundProcess."$($endpoint.NameField)")"
+                    WriteLog "✅ ReleaseKey: '$releaseKey'"
+                    break
+                }
+            }
+        }
+        catch {
+            # Silent continue for partial matching attempts
         }
     }
 }
 
-#Building uipath cli paramters
-$ParamList.Add("job")
-$ParamList.Add("run")
-$ParamList.Add($processName)
-$ParamList.Add($uriOrch)
-$ParamList.Add($tenantlName)
-
-if($accountForApp -ne ""){
-    $ParamList.Add("--accountForApp")
-    $ParamList.Add($accountForApp)
-}
-if($applicationId -ne ""){
-    $ParamList.Add("--applicationId")
-    $ParamList.Add($applicationId)
-}
-if($applicationSecret -ne ""){
-    $ParamList.Add("--applicationSecret")
-    $ParamList.Add($applicationSecret)
-}
-if($applicationScope -ne ""){
-    $ParamList.Add("--applicationScope")
-    $ParamList.Add("`"$applicationScope`"")
-}
-if($accountName -ne ""){
-    $ParamList.Add("--accountName")
-    $ParamList.Add($accountName)
-}
-if($userKey -ne ""){
-    $ParamList.Add("--token")
-    $ParamList.Add($userKey)
-
-}
-if($orchestrator_user -ne ""){
-    $ParamList.Add("--username")
-    $ParamList.Add($orchestrator_user)
-}
-if($orchestrator_pass -ne ""){
-    $ParamList.Add("--password")
-    $ParamList.Add($orchestrator_pass)
-}
-if($input_path -ne ""){
-    $ParamList.Add("--input_path")
-    $ParamList.Add("`"$input_path`"")
-}
-if($jobscount -ne ""){
-    $ParamList.Add("--jobscount")
-    $ParamList.Add($jobscount)
-}
-if($result_path -ne ""){
-    $ParamList.Add("--result_path")
-    $ParamList.Add("`"$result_path`"")
-}
-if($priority -ne ""){
-    $ParamList.Add("--priority")
-    $ParamList.Add($priority)
-}
-if($robots -ne ""){
-    $ParamList.Add("--robots")
-    $ParamList.Add("`"$robots`"")
-}
-if($folder_organization_unit -ne ""){
-    $ParamList.Add("--organizationUnit")
-    $ParamList.Add("`"$folder_organization_unit`"")
-}
-if($language -ne ""){
-    $ParamList.Add("--language")
-    $ParamList.Add($language)
-}
-if($user -ne ""){
-    $ParamList.Add("--user")
-    $ParamList.Add($user)
-}
-if($machine -ne ""){
-    $ParamList.Add("--machine")
-    $ParamList.Add($machine)
-}
-if($timeout -ne ""){
-    $ParamList.Add("--timeout")
-    $ParamList.Add($timeout)
-}
-if($fail_when_job_fails -ne ""){
-    $ParamList.Add("--fail_when_job_fails")
-    $ParamList.Add($fail_when_job_fails)
-}
-if($wait -ne ""){
-    $ParamList.Add("--wait")
-    $ParamList.Add($wait)
-}
-if($job_type -ne ""){
-    $ParamList.Add("--job_type")
-    $ParamList.Add($job_type)
-}
-if($disableTelemetry -ne ""){
-    $ParamList.Add("--disableTelemetry")
-    $ParamList.Add($disableTelemetry)
+# Final fallback: use the process name as-is
+if (-not $releaseKey) {
+    WriteLog "⚠️ Could not find ReleaseKey via API calls"
+    WriteLog "⚠️ Using process name directly as ReleaseKey (might fail): $processName"
+    $releaseKey = $processName
 }
 
-#mask sensitive info before logging 
-$ParamMask = New-Object 'Collections.Generic.List[string]'
-$ParamMask.AddRange($ParamList)
-$secretIndex = $ParamMask.IndexOf("--password");
-if($secretIndex -ge 0){
-    $ParamMask[$secretIndex + 1] = ("*" * 15)
-}
-$secretIndex = $ParamMask.IndexOf("--token");
-if($secretIndex -ge 0){
-    $ParamMask[$secretIndex + 1] = $userKey.Substring(0, [Math]::Min($userKey.Length, 4)) + ("*" * 15)
-}
-$secretIndex = $ParamMask.IndexOf("--applicationId");
-if($secretIndex -ge 0){
-    $ParamMask[$secretIndex + 1] = $applicationId.Substring(0, [Math]::Min($applicationId.Length, 4)) + ("*" * 15)
-}
-$secretIndex = $ParamMask.IndexOf("--applicationSecret");
-if($secretIndex -ge 0){
-    $ParamMask[$secretIndex + 1] = ("*" * 15)
+# --- 4. Get Robot and Machine Information for Targeting ---
+WriteLog "🤖 Looking up Robot and Machine information for targeting..."
+
+$robotId = $null
+$machineId = $null
+
+# Look up Robot ID if robot name is provided
+if ($robots -and $robots.Trim() -ne "") {
+    try {
+        WriteLog "🔍 Looking up Robot: '$robots'"
+        $usersUri = "$orchestratorApiBase/odata/Users"
+        $usersResponse = Invoke-RestMethod -Uri $usersUri -Method Get -Headers $headers -ErrorAction Stop
+        
+        $targetRobot = $usersResponse.value | Where-Object { 
+            $_.Name -eq $robots -and $_.Type -eq "Robot"
+        }
+        
+        if ($targetRobot) {
+            $robotId = $targetRobot.Id
+            WriteLog "✅ Found Robot '$robots' with ID: $robotId"
+        } else {
+            WriteLog "⚠️ Robot '$robots' not found"
+            WriteLog "Available robots:"
+            $usersResponse.value | Where-Object { $_.Type -eq "Robot" } | ForEach-Object {
+                WriteLog "  - Robot: '$($_.Name)' (ID: $($_.Id))"
+            }
+        }
+    } catch {
+        WriteLog "⚠️ Error looking up robot: $($_.Exception.Message)"
+    }
+} else {
+    WriteLog "ℹ️ No robot name specified, will use dynamic allocation"
 }
 
-#log cli call with parameters
-WriteLog "Executing $uipathCLI $ParamMask"
-WriteLog "-----------------------------------------------------------------------------"
+# Look up Machine ID if machine name is provided
+if ($machine -and $machine.Trim() -ne "") {
+    try {
+        WriteLog "🔍 Looking up Machine: '$machine'"
+        $machinesUri = "$orchestratorApiBase/odata/Machines"
+        $machinesResponse = Invoke-RestMethod -Uri $machinesUri -Method Get -Headers $headers -ErrorAction Stop
+        
+        $targetMachine = $machinesResponse.value | Where-Object { 
+            $_.Name -eq $machine
+        }
+        
+        if ($targetMachine) {
+            $machineId = $targetMachine.Id
+            WriteLog "✅ Found Machine '$machine' with ID: $machineId"
+        } else {
+            WriteLog "⚠️ Machine '$machine' not found"
+            WriteLog "Available machines:"
+            $machinesResponse.value | ForEach-Object {
+                WriteLog "  - Machine: '$($_.Name)' (ID: $($_.Id))"
+            }
+        }
+    } catch {
+        WriteLog "⚠️ Error looking up machine: $($_.Exception.Message)"
+    }
+} else {
+    WriteLog "ℹ️ No machine name specified, will use dynamic allocation"
+}
 
-#call uipath cli 
-& "$uipathCLI" $ParamList.ToArray()
+# --- 5. Start Job with Machine/Robot Targeting ---
+WriteLog "🚀 Starting job with ReleaseKey: $releaseKey"
 
-if($LASTEXITCODE -eq 0)
-{
-    WriteLog "Done!"
-    Exit 0
-}else {
-    WriteLog "Unable to run process. Exit code $LASTEXITCODE"
-    Exit 1
+# Build the job request with specific targeting
+$startInfo = @{
+    "ReleaseKey" = $releaseKey
+    "JobsCount" = [int]$jobscount
+    "InputArguments" = "{}"
+}
+
+# Add Strategy and RuntimeType for better control
+$startInfo["Strategy"] = "ModernJobsCount"
+$startInfo["RuntimeType"] = $job_type
+
+# Add robot targeting if we found the robot
+if ($robotId) {
+    $startInfo["RobotIds"] = @([int]$robotId)
+    WriteLog "✅ Targeting specific Robot ID: $robotId"
+}
+
+# Add machine targeting if we found the machine
+if ($machineId) {
+    # Try to get machine sessions for the target machine
+    try {
+        WriteLog "🔍 Looking for active sessions on machine '$machine'..."
+        $machineSessionsUri = "$orchestratorApiBase/odata/Sessions?\$filter=Machine/Id eq $machineId and State eq 'Available'"
+        $sessionsResponse = Invoke-RestMethod -Uri $machineSessionsUri -Method Get -Headers $headers -ErrorAction Stop
+        
+        if ($sessionsResponse.value -and $sessionsResponse.value.Count -gt 0) {
+            $sessionId = $sessionsResponse.value[0].Id
+            $startInfo["MachineSessionIds"] = @([int]$sessionId)
+            WriteLog "✅ Targeting Machine Session ID: $sessionId for Machine: $machine"
+        } else {
+            WriteLog "⚠️ No available sessions found for machine '$machine', trying fallback method"
+            # Fallback: try using MachineIds (for older Orchestrator versions or different configurations)
+            $startInfo["MachineIds"] = @([int]$machineId)
+            WriteLog "✅ Targeting Machine ID: $machineId (fallback method)"
+        }
+    } catch {
+        WriteLog "⚠️ Could not get machine sessions: $($_.Exception.Message)"
+        WriteLog "⚠️ Using MachineIds fallback method"
+        $startInfo["MachineIds"] = @([int]$machineId)
+        WriteLog "✅ Targeting Machine ID: $machineId"
+    }
+}
+
+# Log targeting summary
+WriteLog "📋 Job Targeting Summary:"
+if ($robotId) {
+    WriteLog "   🤖 Robot: '$robots' (ID: $robotId)"
+} else {
+    WriteLog "   🤖 Robot: Dynamic allocation (no specific robot)"
+}
+
+if ($machineId) {
+    WriteLog "   💻 Machine: '$machine' (ID: $machineId)"
+} else {
+    WriteLog "   💻 Machine: Dynamic allocation (no specific machine)"
+}
+
+$startJobBody = @{
+    "startInfo" = $startInfo
+} | ConvertTo-Json -Depth 10
+
+WriteLog "Job request body:"
+WriteLog $startJobBody
+
+try {
+    $startJobUri = "$orchestratorApiBase/odata/Jobs/UiPath.Server.Configuration.OData.StartJobs"
+    WriteLog "Job start URI: $startJobUri"
+    
+    $jobResponse = Invoke-RestMethod -Uri $startJobUri -Method Post -Headers $headers -Body $startJobBody -ErrorAction Stop
+    
+    if ($jobResponse.value -and $jobResponse.value.Count -gt 0) {
+        $jobId = $jobResponse.value[0].Id
+        WriteLog "✅ Job started successfully! Job ID: $jobId"
+        
+        if ($wait -eq "true") {
+            WriteLog "⏳ Waiting for job completion..."
+            $timeoutSeconds = [int]$timeout
+            $startTime = Get-Date
+            
+            do {
+                Start-Sleep -Seconds 10
+                $elapsedSeconds = ((Get-Date) - $startTime).TotalSeconds
+                
+                try {
+                    $jobStatusUri = "$orchestratorApiBase/odata/Jobs($jobId)"
+                    $jobStatus = Invoke-RestMethod -Uri $jobStatusUri -Method Get -Headers $headers -ErrorAction Stop
+                    
+                    $status = $jobStatus.State
+                    $machineName = if ($jobStatus.Robot -and $jobStatus.Robot.MachineName) { $jobStatus.Robot.MachineName } else { "Unknown" }
+                    $robotName = if ($jobStatus.Robot -and $jobStatus.Robot.Name) { $jobStatus.Robot.Name } else { "Unknown" }
+                    
+                    WriteLog "Job status: $status (elapsed: $([math]::Round($elapsedSeconds))s) - Running on Machine: $machineName, Robot: $robotName"
+                    
+                    if ($status -in @("Successful", "Failed", "Stopped", "Faulted")) {
+                        WriteLog "✅ Job completed with status: $status"
+                        WriteLog "📍 Final execution details - Machine: $machineName, Robot: $robotName"
+                        
+                        if ($fail_when_job_fails -eq "true" -and $status -in @("Failed", "Faulted")) {
+                            WriteLog "❌ Job failed with status: $status" -err
+                            exit 1
+                        }
+                        break
+                    }
+                    
+                    if ($elapsedSeconds -ge $timeoutSeconds) {
+                        WriteLog "⏰ Timeout reached ($timeout seconds)" -err
+                        exit 1
+                    }
+                    
+                } catch {
+                    WriteLog "❌ Error checking job status: $($_.Exception.Message)" -err
+                    exit 1
+                }
+                
+            } while ($true)
+        }
+        
+        WriteLog "🎉 Job execution completed successfully!"
+        exit 0
+    } else {
+        WriteLog "❌ No jobs were started" -err
+        exit 1
+    }
+    
+} catch {
+    WriteLog "❌ Error starting job: $($_.Exception.Message)" -err
+    
+    # Enhanced error logging
+    if ($_.Exception.Response) {
+        $statusCode = $_.Exception.Response.StatusCode
+        WriteLog "HTTP Status Code: $statusCode" -err
+        
+        try {
+            $errorStream = $_.Exception.Response.GetResponseStream()
+            $reader = New-Object System.IO.StreamReader($errorStream)
+            $errorBody = $reader.ReadToEnd()
+            WriteLog "Detailed error response: $errorBody" -err
+        } catch {
+            WriteLog "Could not read detailed error response" -err
+        }
+    }
+    
+    WriteLog "🔧 TROUBLESHOOTING:" -err
+    WriteLog "   1. Verify process '$processName' exists and is published" -err
+    WriteLog "   2. Check if your external app has execution permissions" -err
+    WriteLog "   3. Verify robot '$robots' and machine '$machine' exist and are available" -err
+    WriteLog "   4. Ask admin to add required scopes to your external application" -err
+    exit 1
 }
