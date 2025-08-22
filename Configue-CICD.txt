@@ -1,6 +1,6 @@
 ﻿PROJECT_NAME - Fileroom_SanityTest
 ENVIRONMENT - QAT
-RELEASE_NOTES - July33 API_SanityTest CICD_TaxCaddy_SanityTest Fileroom_SanityTest CICD_Fileroom_SanityTest TR_OCS_2024
+RELEASE_NOTES - July56 API_SanityTest CICD_TaxCaddy_SanityTest Fileroom_SanityTest CICD_Fileroom_SanityTest TR_OCS_2024
 BRANCH - main
 UIPATH_CLI_PATH - C:\uipathcli\23.10.8753.32995\tools\uipcli.exe
 FOLDER_ORGANIZATION_UNIT - Automation
