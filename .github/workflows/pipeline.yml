@@ -267,7 +267,7 @@ jobs:
               -robots "${{ needs.config.outputs.robot }}" `
               -machine "${{ needs.config.outputs.machine }}" `
               -timeout "15000" `
-              -wait "true" `
+              -wait "false" `
               -fail_when_job_fails "true"
             
             if ($LASTEXITCODE -eq 0) {
