@@ -6,7 +6,7 @@ UIPATH_CLI_PATH - C:\uipathcli\23.10.8753.32995\tools\uipcli.exe
 FOLDER_ORGANIZATION_UNIT - Automation
 FOLDER_DEPLOY_UNIT - Unattended
 MACHINE - e2-dev-upth02
-ROBOT - robot2-unattended
+ROBOT - minal
 TIMEOUT_SEC - 15000
 BUILD - false
 RUN - true
