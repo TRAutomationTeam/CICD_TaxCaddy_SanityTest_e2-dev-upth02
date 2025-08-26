@@ -1,4 +1,4 @@
-﻿PROJECT_NAME - API_SanityTest
+﻿PROJECT_NAME - Fileroom_SanityTest
 ENVIRONMENT - QAT
 RELEASE_NOTES - July26 API_SanityTest CICD_TaxCaddy_SanityTest Fileroom_SanityTest CICD_Fileroom_SanityTest TR_OCS_2024
 BRANCH - main
