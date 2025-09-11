@@ -1,4 +1,4 @@
-﻿PROJECT_NAME - TR_Aut_Workflow_Performer_DD-2024
+﻿PROJECT_NAME - CustomBinder_RE
 ENVIRONMENT - QAT
 RELEASE_NOTES - July447th API_SanityTest CICD_TaxCaddy_SanityTest Fileroom_SanityTest CICD_Fileroom_SanityTest TR_OCS_2024
 BRANCH - main
